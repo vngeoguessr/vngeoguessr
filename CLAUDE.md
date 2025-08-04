@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 🇻🇳 VNGeoGuessr - Project Configuration
 
-A Vietnamese location-guessing game built with Next.js, featuring interactive maps, real-time multiplayer, and scoring systems focused on Vietnam geography.
+A Vietnamese location-guessing game where players identify locations within Vietnamese cities using panoramic street views.
 
 ## 🛠️ Development Environment
 
@@ -91,30 +91,52 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
+## 🎮 Gameplay Flow
+
+1. **Authentication**: Login required for score saving, guest mode available with warning
+2. **City Selection**: Choose from Vietnamese cities (Ho Chi Minh, Hanoi, Da Nang, etc.)
+3. **Location Display**: Server sends random city location without metadata
+4. **Guessing Phase**: 
+   - View panoramic image (no location hints)
+   - 3-minute timer per location
+   - Place guess on city overview map
+   - Submit guess or skip to new location
+5. **Scoring**: Distance-based points (0-5 scale):
+   - 0-50m = 5 points
+   - 50m-100m = 4 points  
+   - 100m-200m = 3 points
+   - 200m-500m = 2 points
+   - 500m-1km = 1 point
+   - >1km = 0 points
+6. **Results**: Show actual location, distance, points earned, leaderboard position
+7. **Continue**: Next round or view location details
+
 ## 🎮 Game Architecture
 
 ### State Management
-- **GameStore**: Game state, rounds, scores, guesses
-- **UserStore**: Authentication, user preferences
-- **MapStore**: Map settings, current location, Street View
+- **AuthStore**: User authentication, guest mode
+- **GameStore**: Current game session, city selection, scores
+- **LeaderboardStore**: User rankings and statistics
 
 ### Core Logic
-- Distance calculations with Turf.js
-- Exponential scoring system
-- Real-time multiplayer via Supabase
+- Secure location data (no metadata in API)
+- Distance-based scoring system
+- Session-based gameplay
 
 ## 🗺️ Maps Integration
 
-- Street View for location exploration
-- Interactive world map for guessing
-- Distance visualization and markers
+- Panoramic street view images (no location metadata)
+- City overview maps for guessing
+- Distance calculation and visualization
 
 ## 💾 Database Schema
 
 ```sql
-games (id, created_by, game_mode, max_rounds, time_limit, status)
-game_rounds (id, game_id, round_number, location_lat, location_lng)
-player_guesses (id, game_id, player_id, round_id, guess_lat, guess_lng, distance_km, score)
+cities (id, name, bounds, status)
+locations (id, city_id, lat, lng, street_view_data, verified)
+user_sessions (id, user_id, city_id, total_score, created_at)
+guesses (id, session_id, location_id, guess_lat, guess_lng, distance_m, points, time_taken)
+leaderboard (user_id, city_id, best_score, total_games, last_played)
 ```
 
 ## 📱 Development Guidelines
@@ -127,23 +149,36 @@ player_guesses (id, game_id, player_id, round_id, guess_lat, guess_lng, distance
 ## 💡 Code Examples
 
 ```typescript
-// Zustand game store
+// Game session store
 const useGameStore = create<GameState>((set) => ({
-  currentRound: 1,
-  score: 0,
+  selectedCity: null,
+  currentLocation: null,
+  totalScore: 0,
+  timeRemaining: 180, // 3 minutes in seconds
   guesses: [],
-  updateScore: (points) => set((state) => ({ score: state.score + points }))
+  addGuess: (guess) => set((state) => ({ 
+    guesses: [...state.guesses, guess],
+    totalScore: state.totalScore + guess.points 
+  })),
+  resetTimer: () => set({ timeRemaining: 180 })
 }))
 
-// Distance calculation
-import { distance } from '@turf/distance'
-const calculateDistance = (guess: [number, number], actual: [number, number]) => {
-  return distance(guess, actual, { units: 'kilometers' })
+// Distance-based scoring (0-5 points)
+const calculatePoints = (distanceM: number): number => {
+  if (distanceM <= 50) return 5
+  if (distanceM <= 100) return 4
+  if (distanceM <= 200) return 3
+  if (distanceM <= 500) return 2
+  if (distanceM <= 1000) return 1
+  return 0
 }
 
-// Scoring algorithm
-const calculateScore = (distanceKm: number, maxScore = 5000) => {
-  if (distanceKm === 0) return maxScore
-  return Math.round(maxScore * Math.exp(-distanceKm / 2000))
+// Secure API response (no location hints)
+const getRandomLocation = async (cityId: string) => {
+  return {
+    id: 'location_id',
+    panoramaData: 'base64_image_data', // No lat/lng included
+    cityBounds: { north: 10.8, south: 10.7, east: 106.8, west: 106.6 }
+  }
 }
 ```
