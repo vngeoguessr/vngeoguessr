@@ -1,103 +1,178 @@
-import Image from "next/image";
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { useAuthStore } from '@/stores/authStore'
+import { useGameStore } from '@/stores/gameStore'
+import { vietnameseCities } from '@/data/cities'
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [showLogin, setShowLogin] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showGuestWarning, setShowGuestWarning] = useState(false)
+  
+  const router = useRouter()
+  const { user, isAuthenticated, login, playAsGuest, isLoading } = useAuthStore()
+  const { setSelectedCity } = useGameStore()
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await login(email, password)
+  }
+
+  const handleGuestPlay = () => {
+    setShowGuestWarning(true)
+  }
+
+  const confirmGuestPlay = () => {
+    playAsGuest()
+    setShowGuestWarning(false)
+  }
+
+  const handleCitySelect = (cityId: string) => {
+    const city = vietnameseCities.find(c => c.id === cityId)
+    if (city) {
+      setSelectedCity(city)
+      router.push(`/game/${cityId}`)
+    }
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-green-50">
+        <div className="max-w-md w-full mx-4">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">🇻🇳 VNGeoGuessr</h1>
+            <p className="text-gray-600">Explore Vietnam through Street View</p>
+          </div>
+
+          {showGuestWarning ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>⚠️ Guest Mode Warning</CardTitle>
+                <CardDescription>
+                  Playing as a guest means your scores will not be saved to the leaderboard. 
+                  Are you sure you want to continue?
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button onClick={confirmGuestPlay} className="w-full">
+                  Yes, Play as Guest
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowGuestWarning(false)} 
+                  className="w-full"
+                >
+                  Cancel
+                </Button>
+              </CardContent>
+            </Card>
+          ) : showLogin ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Sign In</CardTitle>
+                <CardDescription>Enter your credentials to continue</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div>
+                    <Input
+                      type="email"
+                      placeholder="Email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Input
+                      type="password"
+                      placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? 'Signing In...' : 'Sign In'}
+                  </Button>
+                </form>
+                <div className="mt-4 pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowLogin(false)} 
+                    className="w-full"
+                  >
+                    Back
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Welcome to VNGeoGuessr!</CardTitle>
+                <CardDescription>
+                  Choose how you'd like to play
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button onClick={() => setShowLogin(true)} className="w-full">
+                  Sign In to Save Scores
+                </Button>
+                <Button variant="outline" onClick={handleGuestPlay} className="w-full">
+                  Play as Guest
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">🇻🇳 VNGeoGuessr</h1>
+          <p className="text-gray-600 mb-4">Welcome, {user?.name || 'Guest Player'}</p>
+          {user?.isGuest && (
+            <p className="text-amber-600 text-sm">
+              ⚠️ Guest mode - scores will not be saved
+            </p>
+          )}
+        </div>
+
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-semibold text-center mb-6">Select a Vietnamese City</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {vietnameseCities.map((city) => (
+              <Card 
+                key={city.id} 
+                className="cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => handleCitySelect(city.id)}
+              >
+                <CardHeader>
+                  <CardTitle className="text-lg">{city.name}</CardTitle>
+                  <CardDescription>
+                    Explore the streets of {city.name}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="w-full">Start Game</Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
