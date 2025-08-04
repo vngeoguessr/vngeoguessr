@@ -29,15 +29,12 @@ A Vietnamese location-guessing game built with Next.js, featuring interactive ma
 - **Build**: `pnpm build`
 - **Start**: `pnpm start`
 - **Lint**: `pnpm lint`
-- **Format**: `pnpm format`
-- **Test**: `pnpm test`
-- **Type check**: `pnpm type-check`
 
 ## 📂 Project Structure
 
 ```
-.
-├── app/                     # App Router structure
+src/
+├── app/                     # Next.js App Router
 │   ├── layout.tsx
 │   ├── page.tsx
 │   ├── game/
@@ -50,181 +47,87 @@ A Vietnamese location-guessing game built with Next.js, featuring interactive ma
 │       └── scores/
 ├── components/              # UI components
 │   ├── ui/                  # shadcn/ui components
-│   ├── game/                # Game-specific components
+│   ├── game/                # Game components
 │   │   ├── MapView.tsx
 │   │   ├── GuessMarker.tsx
 │   │   ├── ScoreDisplay.tsx
 │   │   └── GameControls.tsx
-│   ├── maps/                # Map-related components
-│   └── auth/                # Authentication components
+│   └── maps/                # Map components
 ├── stores/                  # Zustand stores
 │   ├── gameStore.ts
 │   ├── userStore.ts
 │   └── mapStore.ts
-├── hooks/                   # Custom React hooks
+├── hooks/                   # Custom hooks
 │   ├── useSupabase.ts
 │   ├── useGoogleMaps.ts
 │   └── useGameLogic.ts
-├── lib/                     # Utilities and configurations
+├── lib/                     # Utilities
 │   ├── supabase/
-│   │   ├── client.ts
-│   │   ├── auth.ts
-│   │   └── realtime.ts
 │   ├── maps/
-│   │   ├── googleMaps.ts
-│   │   └── streetView.ts
 │   ├── game/
 │   │   ├── scoring.ts
-│   │   ├── distance.ts      # Turf.js calculations
+│   │   ├── distance.ts
 │   │   └── locations.ts
 │   └── utils.ts
-├── types/                   # TypeScript type definitions
-│   ├── game.ts
-│   ├── user.ts
-│   └── maps.ts
-├── styles/                  # Tailwind customizations
-├── tests/                   # Unit and integration tests
-├── public/
-├── .env.local.example
-├── .eslintrc.js
-├── tailwind.config.ts
-├── tsconfig.json
-├── postcss.config.js
-├── next.config.js
-├── package.json
-└── README.md
+└── types/                   # TypeScript types
+    ├── game.ts
+    ├── user.ts
+    └── maps.ts
 ```
 
 ## 📦 Required Dependencies
 
 ```bash
-# Core dependencies
 pnpm add @supabase/supabase-js @supabase/auth-helpers-nextjs
-pnpm add zustand
-pnpm add @turf/turf @turf/distance @turf/helpers
-pnpm add @googlemaps/js-api-loader
-
-# Development dependencies
+pnpm add zustand @turf/turf @googlemaps/js-api-loader
 pnpm add -D @types/google.maps
 ```
-
-**Setup Requirements:**
-- Tailwind CSS with PostCSS configuration
-- shadcn/ui: `npx shadcn-ui@latest init`
-- Google Maps API key in environment variables
-- Supabase project with RLS policies configured
 
 ## 🌍 Environment Variables
 
 ```bash
-# Google Maps
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_api_key_here
-
-# Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-
-# Vercel Analytics (auto-configured on Vercel)
 ```
 
-## 🎮 Game Logic Architecture
+## 🎮 Game Architecture
 
-### Scoring System
-- Use Turf.js `distance()` for geographical calculations
-- Exponential scoring: closer guesses = exponentially higher points
-- Store scoring logic in `lib/game/scoring.ts`
+### State Management
+- **GameStore**: Game state, rounds, scores, guesses
+- **UserStore**: Authentication, user preferences
+- **MapStore**: Map settings, current location, Street View
 
-### State Management (Zustand)
-- **GameStore**: Current game state, rounds, scores, guesses
-- **UserStore**: Authentication state, user preferences, statistics  
-- **MapStore**: Map settings, current location, Street View state
+### Core Logic
+- Distance calculations with Turf.js
+- Exponential scoring system
+- Real-time multiplayer via Supabase
 
-### Real-time Features
-- Supabase Realtime for multiplayer game rooms
-- Live game state updates and synchronization
-- Connection state handling and reconnection logic
+## 🗺️ Maps Integration
 
-## 🗺️ Google Maps Integration
+- Street View for location exploration
+- Interactive world map for guessing
+- Distance visualization and markers
 
-### Street View Implementation
-- Random locations with Street View coverage verification
-- Panorama controls and movement restrictions
-- Street View availability checks before game start
-
-### Interactive Guessing Map  
-- World map for placing guesses with custom markers
-- Distance visualization between guess and actual location
-- Smooth animations and transitions between rounds
-
-## 💾 Supabase Database Schema
+## 💾 Database Schema
 
 ```sql
--- Games table
-games (
-  id uuid primary key,
-  created_by uuid references auth.users,
-  game_mode text,
-  max_rounds integer,
-  time_limit integer,
-  created_at timestamp,
-  status text
-)
-
--- Game rounds table
-game_rounds (
-  id uuid primary key,
-  game_id uuid references games,
-  round_number integer,
-  location_lat float,
-  location_lng float,
-  street_view_data jsonb
-)
-
--- Player guesses table
-player_guesses (
-  id uuid primary key,
-  game_id uuid references games,
-  player_id uuid references auth.users,
-  round_id uuid references game_rounds,
-  guess_lat float,
-  guess_lng float,
-  distance_km float,
-  score integer,
-  time_taken integer
-)
+games (id, created_by, game_mode, max_rounds, time_limit, status)
+game_rounds (id, game_id, round_number, location_lat, location_lng)
+player_guesses (id, game_id, player_id, round_id, guess_lat, guess_lng, distance_km, score)
 ```
-
-## 🧪 Testing Strategy
-
-- **Framework**: Jest + React Testing Library
-- **Mocking**: Google Maps API calls, Supabase client interactions
-- **Focus Areas**: Game logic (scoring, distance calculations), component rendering
-- **Integration Tests**: Full game flow with mocked external services
 
 ## 📱 Development Guidelines
 
-### Component Architecture
-- Use shadcn/ui for base UI components (buttons, dialogs, forms)
-- Game-specific components in `components/game/`
-- Responsive design with mobile-first approach
-- Handle loading states for maps and Street View
-
-### Performance Optimization
+- Use shadcn/ui for UI components
+- Responsive mobile-first design
 - Lazy load Google Maps API
-- React.memo for expensive game components  
-- Optimize Supabase queries with proper indexing
-- Image optimization for location thumbnails
+- Implement RLS policies for security
 
-### Security Implementation
-- Row Level Security (RLS) policies for all user data
-- Server-side validation for all game inputs
-- Rate limiting on game creation and submission endpoints
-- Secure API routes with authentication middleware
-
-## 💡 Common Development Patterns
+## 💡 Code Examples
 
 ```typescript
-// Game state management with Zustand
+// Zustand game store
 const useGameStore = create<GameState>((set) => ({
   currentRound: 1,
   score: 0,
@@ -232,26 +135,15 @@ const useGameStore = create<GameState>((set) => ({
   updateScore: (points) => set((state) => ({ score: state.score + points }))
 }))
 
-// Distance calculation with Turf.js
-import { distance } from '@turf/turf'
+// Distance calculation
+import { distance } from '@turf/distance'
 const calculateDistance = (guess: [number, number], actual: [number, number]) => {
   return distance(guess, actual, { units: 'kilometers' })
 }
 
-// Supabase real-time subscription
-const gameChannel = supabase
-  .channel('game-updates')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'games' }, 
-    (payload) => handleGameUpdate(payload))
-  .subscribe()
+// Scoring algorithm
+const calculateScore = (distanceKm: number, maxScore = 5000) => {
+  if (distanceKm === 0) return maxScore
+  return Math.round(maxScore * Math.exp(-distanceKm / 2000))
+}
 ```
-
-## 🧩 Custom Development Commands
-
-For future implementation in `.claude/commands/`:
-
-- `/create-game-component` - Scaffold game component with TypeScript
-- `/setup-map-integration` - Configure Google Maps with Street View
-- `/add-zustand-store` - Create new Zustand store with proper typing
-- `/implement-scoring` - Add scoring logic with Turf.js calculations
-- `/setup-realtime` - Configure Supabase Realtime features
