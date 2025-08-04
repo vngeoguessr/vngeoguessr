@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 🇻🇳 VNGeoGuessr - Project Configuration
+## VNGeoGuessr - Project Configuration
 
 A Vietnamese location-guessing game where players identify locations within Vietnamese cities using panoramic street views.
 
@@ -13,7 +13,8 @@ A Vietnamese location-guessing game where players identify locations within Viet
 - **Styling**: Tailwind CSS v4
 - **Component Library**: shadcn/ui
 - **State Management**: Zustand
-- **Maps**: Google Maps JavaScript API
+- **Maps**: Leaflet + OpenStreetMap
+- **Street View**: Mapillary API
 - **Backend**: Supabase (Database, Auth, Storage, Realtime)
 - **Geo Calculations**: Turf.js
 - **Testing**: Jest + React Testing Library
@@ -78,15 +79,20 @@ src/
 ## 📦 Required Dependencies
 
 ```bash
+# Core dependencies
 pnpm add @supabase/supabase-js @supabase/auth-helpers-nextjs
-pnpm add zustand @turf/turf @googlemaps/js-api-loader
-pnpm add -D @types/google.maps
+pnpm add zustand @turf/turf
+pnpm add leaflet react-leaflet
+pnpm add mapillary-js
+
+# Development dependencies  
+pnpm add -D @types/leaflet
 ```
 
 ## 🌍 Environment Variables
 
 ```bash
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_api_key_here
+NEXT_PUBLIC_MAPILLARY_ACCESS_TOKEN=your_mapillary_access_token
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
@@ -96,14 +102,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 1. **Authentication**: Login required for score saving, guest mode available with warning
 2. **City Selection**: Choose from Vietnamese cities (Ho Chi Minh, Hanoi, Da Nang, etc.)
 3. **Location Display**: Server sends random city location without metadata
-4. **Guessing Phase**: 
-   - View panoramic image (no location hints)
+4. **Guessing Phase**:
+   - View Mapillary street-level imagery (no location hints)
    - 3-minute timer per location
-   - Place guess on city overview map
+   - Place guess on OpenStreetMap via Leaflet
    - Submit guess or skip to new location
 5. **Scoring**: Distance-based points (0-5 scale):
    - 0-50m = 5 points
-   - 50m-100m = 4 points  
+   - 50m-100m = 4 points
    - 100m-200m = 3 points
    - 200m-500m = 2 points
    - 500m-1km = 1 point
@@ -125,9 +131,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ## 🗺️ Maps Integration
 
-- Panoramic street view images (no location metadata)
-- City overview maps for guessing
-- Distance calculation and visualization
+- **Mapillary**: Street-level imagery from crowd-sourced photos
+- **OpenStreetMap + Leaflet**: Interactive maps for location guessing
+- **No Location Metadata**: Secure API responses without coordinates
+- Distance calculation and visualization with result overlays
 
 ## 💾 Database Schema
 
@@ -143,8 +150,10 @@ leaderboard (user_id, city_id, best_score, total_games, last_played)
 
 - Use shadcn/ui for UI components
 - Responsive mobile-first design
-- Lazy load Google Maps API
+- Use Leaflet with OpenStreetMap tiles
+- Use Mapillary Viewer for street imagery
 - Implement RLS policies for security
+- Handle Mapillary API rate limits gracefully
 
 ## 💡 Code Examples
 
@@ -156,9 +165,9 @@ const useGameStore = create<GameState>((set) => ({
   totalScore: 0,
   timeRemaining: 180, // 3 minutes in seconds
   guesses: [],
-  addGuess: (guess) => set((state) => ({ 
+  addGuess: (guess) => set((state) => ({
     guesses: [...state.guesses, guess],
-    totalScore: state.totalScore + guess.points 
+    totalScore: state.totalScore + guess.points
   })),
   resetTimer: () => set({ timeRemaining: 180 })
 }))
@@ -173,11 +182,25 @@ const calculatePoints = (distanceM: number): number => {
   return 0
 }
 
+// Mapillary image retrieval
+const getMapillaryImage = async (lat: number, lng: number) => {
+  const response = await fetch(
+    `https://graph.mapillary.com/images?access_token=${token}&fields=id,thumb_2048_url&bbox=${bbox}`
+  )
+  return response.json()
+}
+
+// Leaflet map initialization
+const map = L.map('map').setView([lat, lng], 13)
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors'
+}).addTo(map)
+
 // Secure API response (no location hints)
 const getRandomLocation = async (cityId: string) => {
   return {
     id: 'location_id',
-    panoramaData: 'base64_image_data', // No lat/lng included
+    mapillary_image_id: 'image_id_here', // No lat/lng included
     cityBounds: { north: 10.8, south: 10.7, east: 106.8, west: 106.6 }
   }
 }

@@ -14,7 +14,7 @@ export default function Home() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showGuestWarning, setShowGuestWarning] = useState(false)
-  
+
   const router = useRouter()
   const { user, isAuthenticated, login, playAsGuest, isLoading } = useAuthStore()
   const { setSelectedCity } = useGameStore()
@@ -46,7 +46,7 @@ export default function Home() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-green-50">
         <div className="max-w-md w-full mx-4">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">🇻🇳 VNGeoGuessr</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">VNGeoGuessr</h1>
             <p className="text-gray-600">Explore Vietnam through Street View</p>
           </div>
 
@@ -55,7 +55,7 @@ export default function Home() {
               <CardHeader>
                 <CardTitle>⚠️ Guest Mode Warning</CardTitle>
                 <CardDescription>
-                  Playing as a guest means your scores will not be saved to the leaderboard. 
+                  Playing as a guest means your scores will not be saved to the leaderboard.
                   Are you sure you want to continue?
                 </CardDescription>
               </CardHeader>
@@ -63,9 +63,9 @@ export default function Home() {
                 <Button onClick={confirmGuestPlay} className="w-full">
                   Yes, Play as Guest
                 </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowGuestWarning(false)} 
+                <Button
+                  variant="outline"
+                  onClick={() => setShowGuestWarning(false)}
                   className="w-full"
                 >
                   Cancel
@@ -103,9 +103,9 @@ export default function Home() {
                   </Button>
                 </form>
                 <div className="mt-4 pt-4 border-t">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setShowLogin(false)} 
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowLogin(false)}
                     className="w-full"
                   >
                     Back
@@ -140,7 +140,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-green-50">
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">🇻🇳 VNGeoGuessr</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">VNGeoGuessr</h1>
           <p className="text-gray-600 mb-4">Welcome, {user?.name || 'Guest Player'}</p>
           {user?.isGuest && (
             <p className="text-amber-600 text-sm">
@@ -151,11 +151,11 @@ export default function Home() {
 
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-semibold text-center mb-6">Select a Vietnamese City</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {vietnameseCities.map((city) => (
-              <Card 
-                key={city.id} 
+              <Card
+                key={city.id}
                 className="cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => handleCitySelect(city.id)}
               >
