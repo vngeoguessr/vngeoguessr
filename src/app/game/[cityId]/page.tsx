@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -28,7 +28,6 @@ export default function GamePage() {
   const [canGuess, setCanGuess] = useState(false)
 
   const { 
-    selectedCity, 
     timeRemaining, 
     totalScore, 
     addGuess, 
@@ -42,6 +41,53 @@ export default function GamePage() {
   // Find city data
   const city = vietnameseCities.find(c => c.id === cityId)
 
+  const handleGuessPlaced = (lat: number, lng: number): void => {
+    setGuessLocation({ lat, lng })
+    setCanGuess(true)
+  }
+
+  const handleGuess = (): void => {
+    if (!guessLocation || !actualLocation) return
+
+    const distance = calculateDistance(
+      guessLocation.lat,
+      guessLocation.lng,
+      actualLocation.lat,
+      actualLocation.lng
+    )
+    
+    const points = calculatePoints(distance)
+    
+    setRoundDistance(distance)
+    setRoundPoints(points)
+    
+    // Add to game store
+    addGuess({
+      id: `guess-${Date.now()}`,
+      sessionId: 'temp-session',
+      locationId: mapillaryImage?.id || 'temp-location',
+      guessLat: guessLocation.lat,
+      guessLng: guessLocation.lng,
+      distanceM: distance,
+      points,
+      timeTaken: 180 - timeRemaining
+    })
+
+    setShowResults(true)
+    setCanGuess(false)
+  }
+
+  const handleTimeUp = useCallback(() => {
+    if (guessLocation && actualLocation) {
+      handleGuess()
+    } else {
+      // No guess made - 0 points
+      setRoundDistance(0)
+      setRoundPoints(0)
+      setShowResults(true)
+    }
+  }, [guessLocation, actualLocation, handleGuess])
+
   // Timer countdown
   useEffect(() => {
     if (timeRemaining > 0 && !showResults && isAuthenticated) {
@@ -52,7 +98,7 @@ export default function GamePage() {
     } else if (timeRemaining === 0 && !showResults) {
       handleTimeUp()
     }
-  }, [timeRemaining, showResults, decrementTimer, isAuthenticated])
+  }, [timeRemaining, showResults, decrementTimer, isAuthenticated, handleTimeUp])
 
   // Initialize Mapillary and game
   useEffect(() => {
@@ -93,54 +139,7 @@ export default function GamePage() {
     initGame()
   }, [city, resetTimer, setIsPlaying])
 
-  const handleGuessPlaced = (lat: number, lng: number) => {
-    setGuessLocation({ lat, lng })
-    setCanGuess(true)
-  }
-
-  const handleGuess = () => {
-    if (!guessLocation || !actualLocation) return
-
-    const distance = calculateDistance(
-      guessLocation.lat,
-      guessLocation.lng,
-      actualLocation.lat,
-      actualLocation.lng
-    )
-    
-    const points = calculatePoints(distance)
-    
-    setRoundDistance(distance)
-    setRoundPoints(points)
-    
-    // Add to game store
-    addGuess({
-      id: `guess-${Date.now()}`,
-      sessionId: 'temp-session',
-      locationId: mapillaryImage?.id || 'temp-location',
-      guessLat: guessLocation.lat,
-      guessLng: guessLocation.lng,
-      distanceM: distance,
-      points,
-      timeTaken: 180 - timeRemaining
-    })
-
-    setShowResults(true)
-    setCanGuess(false)
-  }
-
-  const handleTimeUp = () => {
-    if (guessLocation && actualLocation) {
-      handleGuess()
-    } else {
-      // No guess made - 0 points
-      setRoundDistance(0)
-      setRoundPoints(0)
-      setShowResults(true)
-    }
-  }
-
-  const handleNextRound = async () => {
+  const handleNextRound = async (): Promise<void> => {
     // Reset for next round
     setShowResults(false)
     setGuessLocation(null)

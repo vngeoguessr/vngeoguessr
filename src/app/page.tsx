@@ -118,7 +118,7 @@ export default function Home() {
               <CardHeader>
                 <CardTitle>Welcome to VNGeoGuessr!</CardTitle>
                 <CardDescription>
-                  Choose how you'd like to play
+                  Choose how you&apos;d like to play
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

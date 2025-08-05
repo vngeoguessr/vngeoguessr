@@ -33,8 +33,9 @@ export default function MapillaryViewer({ image, className = '' }: MapillaryView
     containerRef.current.appendChild(imgElement)
 
     return () => {
-      if (containerRef.current) {
-        containerRef.current.innerHTML = ''
+      const container = containerRef.current
+      if (container) {
+        container.innerHTML = ''
       }
     }
   }, [image])

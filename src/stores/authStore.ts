@@ -9,7 +9,7 @@ interface AuthStore extends AuthState {
   playAsGuest: () => void
 }
 
-export const useAuthStore = create<AuthStore>((set, get) => ({
+export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   isLoading: false,
   isAuthenticated: false,
@@ -21,7 +21,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   
   setLoading: (isLoading) => set({ isLoading }),
 
-  login: async (email: string, password: string) => {
+  login: async (email: string, _password: string) => {
     set({ isLoading: true })
     try {
       // TODO: Implement Supabase authentication

@@ -15,7 +15,7 @@ export interface Location {
   cityId: string
   lat: number
   lng: number
-  streetViewData?: any
+  streetViewData?: string
   verified: boolean
 }
 

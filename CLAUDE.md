@@ -31,6 +31,58 @@ A Vietnamese location-guessing game where players identify locations within Viet
 - **Start**: `pnpm start`
 - **Lint**: `pnpm lint`
 
+## 🔧 TypeScript Code Quality Rules
+
+### Strict Typing Requirements
+- **No `any` types**: Use `@typescript-eslint/no-explicit-any` - always specify exact types
+- **Explicit function signatures**: All parameters and return types must be declared
+- **React components**: Return type should be `React.JSX.Element` (import React if needed)
+- **Async functions**: Must declare `Promise<ReturnType>` return types
+- **Event handlers**: Use proper React event types (`React.FormEvent`, `React.ChangeEvent`, etc.)
+
+### Function Type Examples
+```typescript
+// ✅ Correct function typing
+const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+  e.preventDefault()
+}
+
+const calculateScore = (distance: number): number => {
+  return distance < 100 ? 5 : 0
+}
+
+const fetchData = async (id: string): Promise<ApiResponse> => {
+  return await api.get(`/data/${id}`)
+}
+
+// ❌ Avoid these patterns
+const badFunction = (data: any) => { } // No any types
+const badAsync = async (id: string) => { } // Missing Promise return type
+const badComponent = () => { } // Missing React.JSX.Element return type
+```
+
+### Component Type Patterns
+```typescript
+// React component with proper typing
+import React from 'react'
+
+interface Props {
+  title: string
+  onClick: (id: string) => void
+}
+
+const MyComponent = ({ title, onClick }: Props): React.JSX.Element => {
+  return <div>{title}</div>
+}
+
+// Store actions with explicit types
+interface GameStore {
+  score: number
+  setScore: (score: number) => void
+  updateScore: (increment: number) => void
+}
+```
+
 ## 📂 Project Structure
 
 ```
@@ -85,7 +137,7 @@ pnpm add zustand @turf/turf
 pnpm add leaflet react-leaflet
 pnpm add mapillary-js
 
-# Development dependencies  
+# Development dependencies
 pnpm add -D @types/leaflet
 ```
 
