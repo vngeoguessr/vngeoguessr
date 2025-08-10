@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# VNGeoGuessr
 
-## Getting Started
+A GeoGuessr clone focused on Vietnamese locations with accurate boundary detection and anti-cheat security. Play geolocation guessing games across 5 Vietnamese locations using real street-level imagery.
 
-First, run the development server:
+## 🎮 Features
+
+- **5 Vietnamese Locations**: Ha Noi, Da Nang, Ho Chi Minh, Da Lat, Duc Hoa (Long An)
+- **360° Street View**: Mapillary panoramic images with PhotoSphere viewer
+- **Anti-Cheat Security**: Server-side session management prevents cheating
+- **Distance-Based Scoring**: 0-5 point system based on accuracy
+- **Persistent Leaderboards**: Redis-powered top 200 player rankings
+- **Accurate Boundaries**: Nominatim API + Turf.js for precise city detection
+
+## 📚 Documentation
+
+For detailed information about this project, see the documentation in `/docs/`:
+
+- **[Project Overview](docs/project-overview.md)** - Project summary and key characteristics
+- **[Features](docs/features.md)** - Complete feature list and game mechanics
+- **[Tech Stack](docs/tech-stack.md)** - Technology stack and dependencies
+- **[Development Guidelines](docs/development.md)** - Development setup and coding standards
+- **[Game Flow](docs/game-flow.md)** - Complete gameplay flow documentation
+- **[Project Structure](docs/project-structure.md)** - Codebase organization and architecture
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Redis server (for leaderboards)
+
+### Development
 
 ```bash
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+
+# Run linting
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to play the game.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## 🏗️ Built With
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Frontend**: Next.js 15 + React 19 + Tailwind CSS 4
+- **Street View**: Mapillary API + PhotoSphere Viewer
+- **Maps**: Leaflet + OpenStreetMap
+- **Geographic Data**: Nominatim API + Turf.js
+- **Storage**: Redis (leaderboards) + In-memory sessions
+- **UI Components**: shadcn/ui
 
-## Learn More
+## 🎯 How to Play
 
-To learn more about Next.js, take a look at the following resources:
+1. Enter your username
+2. Select a Vietnamese location
+3. View the 360° street panorama
+4. Place your guess on the map
+5. Earn points based on accuracy (closer = more points)
+6. Compete for the top 200 leaderboard spots!
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📋 Development Notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **JavaScript Only**: No TypeScript files
+- **Individual Parameters**: Functions use separate parameters, not object destructuring
+- **Server-Side Security**: Game coordinates never sent to client
+- **Session Management**: Automatic cleanup after 30 minutes
 
-## Deploy on Vercel
+## 🤝 Contributing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project follows specific development guidelines. Please read the [Development Guidelines](docs/development.md) before contributing.
