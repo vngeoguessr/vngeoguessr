@@ -110,6 +110,11 @@ export function getResultMessage(score, distance) {
   return "Nice try! Better luck next time!";
 }
 
+// Get accumulated score message
+export function getAccumulatedScoreMessage(newScore, totalScore) {
+  return `+${newScore} points! Total score: ${totalScore}`;
+}
+
 // Get random location within city bbox
 export function getRandomCityLocationFromBbox(cityCode) {
   const bbox = cityBboxes[cityCode];

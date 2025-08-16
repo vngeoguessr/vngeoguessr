@@ -21,7 +21,8 @@ import {
   cityNames,
   formatDistance,
   getUsername,
-  getResultMessage
+  getResultMessage,
+  getAccumulatedScoreMessage
 } from '../../lib/game';
 
 export default function GameClient() {
@@ -42,6 +43,8 @@ export default function GameClient() {
   const [showDonate, setShowDonate] = useState(false);
   const [username, setUsernameState] = useState('');
   const [leaderboardRank, setLeaderboardRank] = useState(null);
+  const [totalScore, setTotalScore] = useState(null);
+  const [leaderboardMessage, setLeaderboardMessage] = useState('');
   const [mapCenter, setMapCenter] = useState([10.8231, 106.6297]); // Default to Ho Chi Minh
 
   // Refs
@@ -157,7 +160,10 @@ export default function GameClient() {
       const data = await response.json();
       if (data.success) {
         console.log(`Game result processed. Distance: ${data.gameResult.distance}m, Score: ${data.gameResult.score}, Rank: ${data.gameResult.rank}`);
-        return data.gameResult;
+        return {
+          ...data.gameResult,
+          leaderboard: data.leaderboard
+        };
       } else {
         console.error('Failed to submit game result:', data.error);
         return null;
@@ -199,6 +205,12 @@ export default function GameClient() {
         setScore(result.score);
         setExactLocation(result.exactLocation);
         setLeaderboardRank(result.rank);
+        
+        // Set accumulated score information
+        if (result.leaderboard && result.leaderboard.entry) {
+          setTotalScore(result.leaderboard.entry.score);
+          setLeaderboardMessage(result.leaderboard.message);
+        }
       } else {
         // Fallback: no calculation possible without exact location
         setDistance(99999);
@@ -498,8 +510,21 @@ export default function GameClient() {
               </Badge>
 
               <div className="text-xl">
-                Score: <Badge className="text-lg font-bold bg-green-600">{score}/5 points</Badge>
+                Round Score: <Badge className="text-lg font-bold bg-green-600">{score}/5 points</Badge>
               </div>
+
+              {totalScore !== null && (
+                <div className="space-y-2">
+                  <Badge variant="outline" className="text-lg text-blue-600 font-semibold">
+                    Total Score: {totalScore} points
+                  </Badge>
+                  {leaderboardMessage && (
+                    <p className="text-sm text-green-600 font-medium">
+                      {leaderboardMessage}
+                    </p>
+                  )}
+                </div>
+              )}
 
               {leaderboardRank && (
                 <Badge variant="outline" className="text-lg text-purple-600 font-semibold">

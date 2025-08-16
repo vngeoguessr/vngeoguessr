@@ -34,6 +34,6 @@ Distance-based points (0-5 scale):
 ## Leaderboards
 - **Redis Sorted Sets**: Persistent leaderboard data using Redis ZADD/ZRANGE
 - **Top 200 Players**: Maximum entry limit with automatic trimming
-- **Highest Score Only**: Only updates if new score exceeds existing score
+- **Accumulated Scoring**: All scores are added to player's total (no replacement)
 - **Persistent Storage**: No expiration on leaderboard data
-- **Real-time Ranking**: Dynamic rank calculation based on current standings
+- **Real-time Ranking**: Dynamic rank calculation based on accumulated totals

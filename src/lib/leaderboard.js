@@ -58,34 +58,34 @@ export async function submitScore(username, score) {
     const trimmedUsername = username.trim();
     const numScore = Number(score);
     
-    // Check if user already exists in leaderboard
+    // Get existing accumulated score
     const existingScore = await redis.zScore(LEADERBOARD_KEY, trimmedUsername);
+    const currentTotal = existingScore || 0;
     
-    // Only update if new score is higher
-    if (existingScore === null || numScore > existingScore) {
-      // Add or update user's score in the leaderboard
-      await redis.zAdd(LEADERBOARD_KEY, {
-        score: numScore,
-        value: trimmedUsername
-      });
-      
-      // Keep only top 200 entries to manage storage
-      await redis.zRemRangeByRank(LEADERBOARD_KEY, 0, -(MAX_LEADERBOARD_SIZE + 1));
-    }
+    // Add new score to accumulated total
+    const newTotal = currentTotal + numScore;
+    
+    // Update user's accumulated score in the leaderboard
+    await redis.zAdd(LEADERBOARD_KEY, {
+      score: newTotal,
+      value: trimmedUsername
+    });
+    
+    // Keep only top 200 entries to manage storage
+    await redis.zRemRangeByRank(LEADERBOARD_KEY, 0, -(MAX_LEADERBOARD_SIZE + 1));
     
     // Calculate current rank
     const rank = await redis.zRevRank(LEADERBOARD_KEY, trimmedUsername);
     const actualRank = rank !== null ? rank + 1 : null;
-    const finalScore = await redis.zScore(LEADERBOARD_KEY, trimmedUsername);
     
     return {
       success: true,
       entry: { 
         username: trimmedUsername, 
-        score: Number(finalScore),
+        score: Number(newTotal),
         rank: actualRank 
       },
-      message: numScore > (existingScore || 0) ? 'New high score!' : 'Score submitted'
+      message: `Score added! Total: ${newTotal} (+${numScore})`
     };
     
   } catch (error) {

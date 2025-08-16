@@ -72,10 +72,11 @@ export default function Home() {
   };
 
   const getScoreColor = (score) => {
-    if (score === 5) return 'text-green-600';
-    if (score >= 4) return 'text-blue-600';
-    if (score >= 3) return 'text-yellow-600';
-    if (score >= 2) return 'text-orange-600';
+    if (score >= 50) return 'text-purple-600';
+    if (score >= 25) return 'text-green-600';
+    if (score >= 15) return 'text-blue-600';
+    if (score >= 10) return 'text-yellow-600';
+    if (score >= 5) return 'text-orange-600';
     return 'text-red-600';
   };
 
@@ -228,7 +229,7 @@ export default function Home() {
 
                       <div>
                         <Badge variant="secondary" className={`text-xl font-bold ${getScoreColor(entry.score)}`}>
-                          {entry.score}/5
+                          {entry.score}
                         </Badge>
                       </div>
                     </div>
@@ -249,6 +250,11 @@ export default function Home() {
                     <div>200-500m = 2 points ⭐⭐</div>
                     <div>500m-1km = 1 point ⭐</div>
                     <div>1km+ = 0 points</div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <p className="text-sm text-center font-medium text-gray-700">
+                      🏆 Scores accumulate - keep playing to climb the leaderboard!
+                    </p>
                   </div>
                 </CardContent>
               </Card>
