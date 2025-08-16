@@ -54,16 +54,18 @@ Distance-based points (0-5 scale):
 ### 8. Results Display
 - Show calculated distance between guess and actual location
 - Display earned points for current round (0-5 scale)
-- Show accumulated total score and rank update message
+- Show accumulated total scores for both city and global leaderboards
+- Display current rankings in both city and global leaderboards
+- Show leaderboard update message with score increments
 - Reveal exact target coordinates and location details
-- Show current leaderboard rank (Vietnam-wide)
 - Compare guess vs actual location on map
 
 ### 9. Leaderboard Management
+- **Multi-Leaderboard Updates**: Each game simultaneously updates both city and global leaderboards
 - **Redis Sorted Sets**: Persistent storage using ZADD/ZRANGE operations
-- **Top 200 Limit**: Automatic trimming to maintain top performers only
-- **Score Accumulation**: New scores are added to existing total (using ZSCORE + new score)
-- **Real-time Ranking**: Dynamic rank calculation using ZREVRANK
+- **Top 200 Limit**: Automatic trimming per leaderboard to maintain top performers only
+- **Score Accumulation**: New scores added to existing totals in both city and global leaderboards
+- **Real-time Ranking**: Dynamic rank calculation using ZREVRANK for both leaderboards
 - **Persistent Storage**: No expiration on leaderboard data
 
 ### 10. Continue or Exit

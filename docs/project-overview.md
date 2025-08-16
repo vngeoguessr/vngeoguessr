@@ -7,7 +7,7 @@ VNGeoGuessr is a GeoGuessr clone focused on Vietnamese locations, supporting 5 m
 - **Location Coverage**: 5 Vietnamese locations - Ha Noi, Da Nang, Ho Chi Minh, Da Lat, Duc Hoa (Long An)
 - **Bbox-based Location Generation**: Pre-defined bounding boxes for accurate city area targeting
 - **Anti-Cheat Security**: Redis-based session management, server-side coordinate storage
-- **Persistent Storage**: Redis-based leaderboards with top 200 players
+- **Multi-Leaderboard System**: City-specific leaderboards plus global Vietnam leaderboard with top 200 players each
 - **Interactive Gameplay**: Click-to-guess map interface
 
 ## Game Mechanics

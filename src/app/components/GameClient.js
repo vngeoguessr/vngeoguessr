@@ -42,8 +42,10 @@ export default function GameClient() {
   const [exactLocation, setExactLocation] = useState(null);
   const [showDonate, setShowDonate] = useState(false);
   const [username, setUsernameState] = useState('');
-  const [leaderboardRank, setLeaderboardRank] = useState(null);
-  const [totalScore, setTotalScore] = useState(null);
+  const [globalRank, setGlobalRank] = useState(null);
+  const [cityRank, setCityRank] = useState(null);
+  const [globalScore, setGlobalScore] = useState(null);
+  const [cityScore, setCityScore] = useState(null);
   const [leaderboardMessage, setLeaderboardMessage] = useState('');
   const [mapCenter, setMapCenter] = useState([10.8231, 106.6297]); // Default to Ho Chi Minh
 
@@ -204,11 +206,17 @@ export default function GameClient() {
         setDistance(result.distance);
         setScore(result.score);
         setExactLocation(result.exactLocation);
-        setLeaderboardRank(result.rank);
+        setGlobalRank(result.globalRank);
+        setCityRank(result.cityRank);
         
         // Set accumulated score information
-        if (result.leaderboard && result.leaderboard.entry) {
-          setTotalScore(result.leaderboard.entry.score);
+        if (result.leaderboard) {
+          if (result.leaderboard.global) {
+            setGlobalScore(result.leaderboard.global.score);
+          }
+          if (result.leaderboard.city) {
+            setCityScore(result.leaderboard.city.score);
+          }
           setLeaderboardMessage(result.leaderboard.message);
         }
       } else {
@@ -216,7 +224,8 @@ export default function GameClient() {
         setDistance(99999);
         setScore(0);
         setExactLocation(null);
-        setLeaderboardRank(null);
+        setGlobalRank(null);
+        setCityRank(null);
       }
     } catch (error) {
       console.error('Error submitting guess:', error);
@@ -225,7 +234,8 @@ export default function GameClient() {
       setDistance(99999);
       setScore(0);
       setExactLocation(null);
-      setLeaderboardRank(null);
+      setGlobalRank(null);
+      setCityRank(null);
     }
 
     setLoading(false);
@@ -235,7 +245,10 @@ export default function GameClient() {
   const handleNextRound = () => {
     setShowResult(false);
     setGuessCoordinates(null);
-    setLeaderboardRank(null);
+    setGlobalRank(null);
+    setCityRank(null);
+    setGlobalScore(null);
+    setCityScore(null);
     setExactLocation(null);
     const currentSession = sessionId;
     setSessionId(null);
@@ -264,7 +277,10 @@ export default function GameClient() {
 
     // Reset state and load next image
     setGuessCoordinates(null);
-    setLeaderboardRank(null);
+    setGlobalRank(null);
+    setCityRank(null);
+    setGlobalScore(null);
+    setCityScore(null);
     setExactLocation(null);
     const currentSession = sessionId;
     setSessionId(null);
@@ -513,23 +529,36 @@ export default function GameClient() {
                 Round Score: <Badge className="text-lg font-bold bg-green-600">{score}/5 points</Badge>
               </div>
 
-              {totalScore !== null && (
-                <div className="space-y-2">
-                  <Badge variant="outline" className="text-lg text-blue-600 font-semibold">
-                    Total Score: {totalScore} points
-                  </Badge>
+              {(globalScore !== null || cityScore !== null) && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {cityScore !== null && (
+                      <div className="text-center">
+                        <Badge variant="outline" className="text-lg text-blue-600 font-semibold">
+                          {cityNames[location]} Total: {cityScore}
+                        </Badge>
+                        {cityRank && (
+                          <p className="text-sm text-gray-600 mt-1">Rank #{cityRank}</p>
+                        )}
+                      </div>
+                    )}
+                    {globalScore !== null && (
+                      <div className="text-center">
+                        <Badge variant="outline" className="text-lg text-purple-600 font-semibold">
+                          Global Total: {globalScore}
+                        </Badge>
+                        {globalRank && (
+                          <p className="text-sm text-gray-600 mt-1">Rank #{globalRank}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                   {leaderboardMessage && (
-                    <p className="text-sm text-green-600 font-medium">
+                    <p className="text-sm text-green-600 font-medium text-center">
                       {leaderboardMessage}
                     </p>
                   )}
                 </div>
-              )}
-
-              {leaderboardRank && (
-                <Badge variant="outline" className="text-lg text-purple-600 font-semibold">
-                  Vietnam Leaderboard Rank: #{leaderboardRank}
-                </Badge>
               )}
 
               <p className="text-sm text-muted-foreground">

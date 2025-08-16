@@ -61,8 +61,8 @@ export async function POST(request) {
     // Calculate score based on distance (server-side)
     const finalScore = calculateScore(distance);
 
-    // Submit to leaderboard with calculated score
-    const leaderboardResult = await submitScore(username.trim(), finalScore);
+    // Submit to leaderboard with calculated score (both city and global)
+    const leaderboardResult = await submitScore(username.trim(), finalScore, session.cityCode);
 
     // Log the submission for anti-cheat monitoring
     console.log('Game submission:', {
@@ -84,7 +84,8 @@ export async function POST(request) {
       gameResult: {
         distance,
         score: finalScore,
-        rank: leaderboardResult.entry?.rank || null,
+        globalRank: leaderboardResult.global?.rank || null,
+        cityRank: leaderboardResult.city?.rank || null,
         exactLocation: {
           lat: numTargetLat,
           lng: numTargetLng

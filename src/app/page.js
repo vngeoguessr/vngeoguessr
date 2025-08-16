@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UsernameModal from './components/UsernameModal';
 import DonateQRModal from './components/DonateQRModal';
 import { getUsername, setUsername, cities } from '../lib/game';
@@ -18,6 +19,8 @@ export default function Home() {
   const [username, setUsernameState] = useState('');
   const [leaderboard, setLeaderboard] = useState([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
+  const [activeLeaderboardTab, setActiveLeaderboardTab] = useState('global');
+  const [cityLeaderboards, setCityLeaderboards] = useState({});
 
   useEffect(() => {
     // Check for existing username on page load
@@ -39,14 +42,22 @@ export default function Home() {
     setShowUsernameModal(false);
   };
 
-  const fetchLeaderboard = async () => {
+  const fetchLeaderboard = async (cityCode = null) => {
     setLoadingLeaderboard(true);
     try {
-      const response = await fetch('/api/leaderboard');
+      const url = cityCode ? `/api/leaderboard?city=${cityCode}` : '/api/leaderboard';
+      const response = await fetch(url);
       const data = await response.json();
 
       if (data.success) {
-        setLeaderboard(data.leaderboard);
+        if (cityCode) {
+          setCityLeaderboards(prev => ({
+            ...prev,
+            [cityCode]: data.leaderboard
+          }));
+        } else {
+          setLeaderboard(data.leaderboard);
+        }
       } else {
         console.error('Failed to fetch leaderboard:', data.error);
       }
@@ -57,9 +68,25 @@ export default function Home() {
     }
   };
 
+  const fetchAllLeaderboards = async () => {
+    setLoadingLeaderboard(true);
+    try {
+      // Fetch global leaderboard
+      await fetchLeaderboard();
+      
+      // Fetch all city leaderboards
+      const cityPromises = cities.map(city => fetchLeaderboard(city.code));
+      await Promise.all(cityPromises);
+    } catch (error) {
+      console.error('Error fetching leaderboards:', error);
+    } finally {
+      setLoadingLeaderboard(false);
+    }
+  };
+
   const handleLeaderboardClick = () => {
     setShowLeaderboardModal(true);
-    fetchLeaderboard();
+    fetchAllLeaderboards();
   };
 
   const getRankIcon = (rank) => {
@@ -83,6 +110,65 @@ export default function Home() {
   const isCurrentUser = (leaderboardUsername) => {
     return username && leaderboardUsername === username;
   };
+
+  const renderLeaderboardContent = (leaderboardData, title) => (
+    <>
+      <h3 className="text-xl font-bold text-center mb-4">{title}</h3>
+      {loadingLeaderboard ? (
+        <div className="space-y-2">
+          {[...Array(10)].map((_, i) => (
+            <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-gray-100">
+              <div className="flex items-center gap-4">
+                <Skeleton className="h-8 w-12" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <Skeleton className="h-6 w-16" />
+            </div>
+          ))}
+        </div>
+      ) : leaderboardData.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-600 text-lg">No scores yet!</p>
+          <p className="text-gray-500 mt-2">Be the first to play in this category!</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {leaderboardData.map((entry, index) => (
+            <div
+              key={entry.username}
+              className={`flex items-center justify-between p-4 rounded-lg transition-all ${isCurrentUser(entry.username)
+                  ? 'bg-yellow-100 border-2 border-yellow-400 shadow-lg'
+                  : entry.rank <= 3
+                    ? 'bg-blue-50 border border-blue-200'
+                    : 'bg-gray-50'
+                }`}
+            >
+              <div className="flex items-center gap-4">
+                <div className="text-xl font-bold w-12 text-center">
+                  {getRankIcon(entry.rank)}
+                </div>
+                <div>
+                  <div className={`font-semibold text-lg ${isCurrentUser(entry.username) ? 'text-yellow-800' : 'text-gray-800'
+                    }`}>
+                    {entry.username}
+                    {isCurrentUser(entry.username) && (
+                      <Badge className="ml-2 bg-yellow-500 text-black">YOU</Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Badge variant="secondary" className={`text-xl font-bold ${getScoreColor(entry.score)}`}>
+                  {entry.score}
+                </Badge>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-purple-600">
@@ -177,65 +263,32 @@ export default function Home() {
 
         {/* Leaderboard Modal */}
         <Dialog open={showLeaderboardModal} onOpenChange={setShowLeaderboardModal}>
-          <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-3xl text-center">🏆 Vietnam Leaderboard</DialogTitle>
+              <DialogTitle className="text-3xl text-center">🏆 VNGeoGuessr Leaderboards</DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-4">
-              {loadingLeaderboard ? (
-                <div className="space-y-2">
-                  {[...Array(10)].map((_, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-gray-100">
-                      <div className="flex items-center gap-4">
-                        <Skeleton className="h-8 w-12" />
-                        <Skeleton className="h-4 w-24" />
-                      </div>
-                      <Skeleton className="h-6 w-16" />
-                    </div>
-                  ))}
-                </div>
-              ) : leaderboard.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-gray-600 text-lg">No scores yet!</p>
-                  <p className="text-gray-500 mt-2">Be the first to play and make it to the leaderboard!</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {leaderboard.map((entry, index) => (
-                    <div
-                      key={entry.username}
-                      className={`flex items-center justify-between p-4 rounded-lg transition-all ${isCurrentUser(entry.username)
-                          ? 'bg-yellow-100 border-2 border-yellow-400 shadow-lg'
-                          : entry.rank <= 3
-                            ? 'bg-blue-50 border border-blue-200'
-                            : 'bg-gray-50'
-                        }`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="text-xl font-bold w-12 text-center">
-                          {getRankIcon(entry.rank)}
-                        </div>
-                        <div>
-                          <div className={`font-semibold text-lg ${isCurrentUser(entry.username) ? 'text-yellow-800' : 'text-gray-800'
-                            }`}>
-                            {entry.username}
-                            {isCurrentUser(entry.username) && (
-                              <Badge className="ml-2 bg-yellow-500 text-black">YOU</Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+            <Tabs value={activeLeaderboardTab} onValueChange={setActiveLeaderboardTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-6">
+                <TabsTrigger value="global">🌏 Global</TabsTrigger>
+                {cities.map(city => (
+                  <TabsTrigger key={city.code} value={city.code}>
+                    {city.code}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
 
-                      <div>
-                        <Badge variant="secondary" className={`text-xl font-bold ${getScoreColor(entry.score)}`}>
-                          {entry.score}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {/* Global Leaderboard */}
+              <TabsContent value="global" className="space-y-4">
+                {renderLeaderboardContent(leaderboard, "Vietnam Global Leaderboard")}
+              </TabsContent>
+
+              {/* City Leaderboards */}
+              {cities.map(city => (
+                <TabsContent key={city.code} value={city.code} className="space-y-4">
+                  {renderLeaderboardContent(cityLeaderboards[city.code] || [], `${city.name} Leaderboard`)}
+                </TabsContent>
+              ))}
 
               {/* Scoring Legend */}
               <Card className="mt-6">
@@ -258,7 +311,7 @@ export default function Home() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
+            </Tabs>
           </DialogContent>
         </Dialog>
 

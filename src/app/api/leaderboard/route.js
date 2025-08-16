@@ -3,13 +3,19 @@ import { getLeaderboard } from '../../../lib/leaderboard.js';
 
 export async function GET(request) {
   try {
-    // Get top 100 leaderboard entries
-    const leaderboard = await getLeaderboard(100);
+    const { searchParams } = new URL(request.url);
+    const cityCode = searchParams.get('city'); // Optional city parameter
+    const limit = parseInt(searchParams.get('limit')) || 100;
+
+    // Get leaderboard entries (city-specific or global)
+    const leaderboard = await getLeaderboard(cityCode, limit);
 
     return NextResponse.json({
       success: true,
       leaderboard,
-      count: leaderboard.length
+      count: leaderboard.length,
+      type: cityCode ? 'city' : 'global',
+      cityCode: cityCode || null
     });
 
   } catch (error) {
