@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import UsernameModal from './components/UsernameModal';
+import DonateQRModal from './components/DonateQRModal';
 import { getUsername, setUsername, cities } from '../lib/game';
 
 export default function Home() {
@@ -161,28 +162,10 @@ export default function Home() {
         </div>
 
         {/* Donate Modal */}
-        <Dialog open={showDonateModal} onOpenChange={setShowDonateModal}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-2xl text-center">DONATE HERE</DialogTitle>
-            </DialogHeader>
-
-            <div className="text-center space-y-6">
-              <Card className="w-64 h-64 mx-auto">
-                <CardContent className="h-full flex items-center justify-center">
-                  <span className="text-muted-foreground">QR Code Placeholder</span>
-                </CardContent>
-              </Card>
-
-              <Button
-                onClick={() => setShowDonateModal(false)}
-                className="px-6"
-              >
-                CLOSE
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <DonateQRModal 
+          isOpen={showDonateModal} 
+          onClose={() => setShowDonateModal(false)} 
+        />
 
         {/* Username Modal */}
         <UsernameModal
