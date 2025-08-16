@@ -32,10 +32,13 @@ Distance-based points (0-5 scale):
 - **1km+**: 0 points
 
 ## Leaderboards
-- **Multi-Leaderboard System**: Separate leaderboards for each city plus global Vietnam leaderboard
+- **Triple-Leaderboard System**: Score leaderboards (accumulated points) + Distance leaderboards (best distances)
+- **Score Leaderboards**: Separate accumulated score leaderboards for each city plus global Vietnam
+- **Distance Leaderboards**: Best distance records for each city plus global Vietnam (multiple entries per user)
 - **Redis Sorted Sets**: Persistent leaderboard data using Redis ZADD/ZRANGE
-- **Top 200 Players**: Maximum entry limit with automatic trimming per leaderboard
-- **Accumulated Scoring**: All scores are added to both city and global totals simultaneously
+- **Top 200 Entries**: Maximum entry limit with automatic trimming per leaderboard
+- **Accumulated Scoring**: All scores are added to both city and global score totals simultaneously
+- **Distance Records**: Each game creates a new distance record entry (users can have multiple positions)
 - **Persistent Storage**: No expiration on leaderboard data
-- **Real-time Ranking**: Dynamic rank calculation for both city and global standings
-- **Dual Updates**: Each game updates both city-specific and global Vietnam leaderboards
+- **Real-time Ranking**: Dynamic rank calculation for all leaderboard types
+- **Triple Updates**: Each game updates score leaderboards AND distance leaderboards (city + global)

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { submitScore } from '../../../lib/leaderboard.js';
+import { submitScore, submitDistanceRecord } from '../../../lib/leaderboard.js';
 import { getGameSession, deleteGameSession } from '../../../lib/session.js';
 import { calculateDistance, calculateScore } from '../../../lib/game.js';
 
@@ -63,6 +63,9 @@ export async function POST(request) {
 
     // Submit to leaderboard with calculated score (both city and global)
     const leaderboardResult = await submitScore(username.trim(), finalScore, session.cityCode);
+    
+    // Submit distance record to distance leaderboards (both city and global)
+    const distanceResult = await submitDistanceRecord(username.trim(), distance, session.cityCode);
 
     // Log the submission for anti-cheat monitoring
     console.log('Game submission:', {
@@ -86,12 +89,15 @@ export async function POST(request) {
         score: finalScore,
         globalRank: leaderboardResult.global?.rank || null,
         cityRank: leaderboardResult.city?.rank || null,
+        globalDistanceRank: distanceResult.globalDistance?.rank || null,
+        cityDistanceRank: distanceResult.cityDistance?.rank || null,
         exactLocation: {
           lat: numTargetLat,
           lng: numTargetLng
         }
       },
       leaderboard: leaderboardResult,
+      distance: distanceResult,
       message: 'Game result processed successfully'
     });
 

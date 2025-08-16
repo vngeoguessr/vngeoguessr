@@ -46,6 +46,8 @@ export default function GameClient() {
   const [cityRank, setCityRank] = useState(null);
   const [globalScore, setGlobalScore] = useState(null);
   const [cityScore, setCityScore] = useState(null);
+  const [globalDistanceRank, setGlobalDistanceRank] = useState(null);
+  const [cityDistanceRank, setCityDistanceRank] = useState(null);
   const [leaderboardMessage, setLeaderboardMessage] = useState('');
   const [mapCenter, setMapCenter] = useState([10.8231, 106.6297]); // Default to Ho Chi Minh
 
@@ -208,6 +210,8 @@ export default function GameClient() {
         setExactLocation(result.exactLocation);
         setGlobalRank(result.globalRank);
         setCityRank(result.cityRank);
+        setGlobalDistanceRank(result.globalDistanceRank);
+        setCityDistanceRank(result.cityDistanceRank);
         
         // Set accumulated score information
         if (result.leaderboard) {
@@ -236,6 +240,8 @@ export default function GameClient() {
       setExactLocation(null);
       setGlobalRank(null);
       setCityRank(null);
+      setGlobalDistanceRank(null);
+      setCityDistanceRank(null);
     }
 
     setLoading(false);
@@ -249,6 +255,8 @@ export default function GameClient() {
     setCityRank(null);
     setGlobalScore(null);
     setCityScore(null);
+    setGlobalDistanceRank(null);
+    setCityDistanceRank(null);
     setExactLocation(null);
     const currentSession = sessionId;
     setSessionId(null);
@@ -281,6 +289,8 @@ export default function GameClient() {
     setCityRank(null);
     setGlobalScore(null);
     setCityScore(null);
+    setGlobalDistanceRank(null);
+    setCityDistanceRank(null);
     setExactLocation(null);
     const currentSession = sessionId;
     setSessionId(null);
@@ -558,6 +568,30 @@ export default function GameClient() {
                       {leaderboardMessage}
                     </p>
                   )}
+                </div>
+              )}
+
+              {(globalDistanceRank !== null || cityDistanceRank !== null) && (
+                <div className="space-y-2">
+                  <h4 className="text-lg font-semibold text-center text-purple-700">Distance Leaderboard Rankings</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {cityDistanceRank !== null && (
+                      <div className="text-center">
+                        <Badge variant="outline" className="text-sm text-blue-600 font-semibold">
+                          {cityNames[location]} Distance Rank #{cityDistanceRank}
+                        </Badge>
+                        <p className="text-xs text-gray-600 mt-1">{formatDistance(distance)}</p>
+                      </div>
+                    )}
+                    {globalDistanceRank !== null && (
+                      <div className="text-center">
+                        <Badge variant="outline" className="text-sm text-purple-600 font-semibold">
+                          Global Distance Rank #{globalDistanceRank}
+                        </Badge>
+                        <p className="text-xs text-gray-600 mt-1">{formatDistance(distance)}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 

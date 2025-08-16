@@ -54,18 +54,22 @@ Distance-based points (0-5 scale):
 ### 8. Results Display
 - Show calculated distance between guess and actual location
 - Display earned points for current round (0-5 scale)
-- Show accumulated total scores for both city and global leaderboards
-- Display current rankings in both city and global leaderboards
+- Show accumulated total scores for both city and global score leaderboards
+- Display current rankings in both city and global score leaderboards
+- Show distance leaderboard rankings for current game (city and global)
 - Show leaderboard update message with score increments
 - Reveal exact target coordinates and location details
 - Compare guess vs actual location on map
 
 ### 9. Leaderboard Management
-- **Multi-Leaderboard Updates**: Each game simultaneously updates both city and global leaderboards
+- **Triple-Leaderboard Updates**: Each game updates score leaderboards AND distance leaderboards (city + global)
+- **Score Leaderboards**: Accumulated scoring system with single entry per user
+- **Distance Leaderboards**: Best distance records with multiple entries per user allowed
 - **Redis Sorted Sets**: Persistent storage using ZADD/ZRANGE operations
 - **Top 200 Limit**: Automatic trimming per leaderboard to maintain top performers only
-- **Score Accumulation**: New scores added to existing totals in both city and global leaderboards
-- **Real-time Ranking**: Dynamic rank calculation using ZREVRANK for both leaderboards
+- **Score Accumulation**: New scores added to existing totals in score leaderboards
+- **Distance Records**: Each game creates new timestamped distance record entry
+- **Real-time Ranking**: Dynamic rank calculation using ZREVRANK/ZRANK for all leaderboard types
 - **Persistent Storage**: No expiration on leaderboard data
 
 ### 10. Continue or Exit

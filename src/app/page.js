@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UsernameModal from './components/UsernameModal';
 import DonateQRModal from './components/DonateQRModal';
-import { getUsername, setUsername, cities } from '../lib/game';
+import { getUsername, setUsername, cities, formatDistance, getDistanceColor } from '../lib/game';
 
 export default function Home() {
   const [showDonateModal, setShowDonateModal] = useState(false);
@@ -19,8 +19,11 @@ export default function Home() {
   const [username, setUsernameState] = useState('');
   const [leaderboard, setLeaderboard] = useState([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
-  const [activeLeaderboardTab, setActiveLeaderboardTab] = useState('global');
+  const [activeLocationTab, setActiveLocationTab] = useState('global');
+  const [activeTypeTab, setActiveTypeTab] = useState('score');
   const [cityLeaderboards, setCityLeaderboards] = useState({});
+  const [distanceLeaderboard, setDistanceLeaderboard] = useState([]);
+  const [cityDistanceLeaderboards, setCityDistanceLeaderboards] = useState({});
 
   useEffect(() => {
     // Check for existing username on page load
@@ -42,21 +45,36 @@ export default function Home() {
     setShowUsernameModal(false);
   };
 
-  const fetchLeaderboard = async (cityCode = null) => {
+  const fetchLeaderboard = async (cityCode = null, type = 'score') => {
     setLoadingLeaderboard(true);
     try {
-      const url = cityCode ? `/api/leaderboard?city=${cityCode}` : '/api/leaderboard';
+      const params = new URLSearchParams();
+      if (cityCode) params.append('city', cityCode);
+      if (type) params.append('type', type);
+      
+      const url = `/api/leaderboard?${params.toString()}`;
       const response = await fetch(url);
       const data = await response.json();
 
       if (data.success) {
-        if (cityCode) {
-          setCityLeaderboards(prev => ({
-            ...prev,
-            [cityCode]: data.leaderboard
-          }));
+        if (type === 'distance') {
+          if (cityCode) {
+            setCityDistanceLeaderboards(prev => ({
+              ...prev,
+              [cityCode]: data.leaderboard
+            }));
+          } else {
+            setDistanceLeaderboard(data.leaderboard);
+          }
         } else {
-          setLeaderboard(data.leaderboard);
+          if (cityCode) {
+            setCityLeaderboards(prev => ({
+              ...prev,
+              [cityCode]: data.leaderboard
+            }));
+          } else {
+            setLeaderboard(data.leaderboard);
+          }
         }
       } else {
         console.error('Failed to fetch leaderboard:', data.error);
@@ -71,12 +89,19 @@ export default function Home() {
   const fetchAllLeaderboards = async () => {
     setLoadingLeaderboard(true);
     try {
-      // Fetch global leaderboard
-      await fetchLeaderboard();
+      // Fetch global score leaderboard
+      await fetchLeaderboard(null, 'score');
       
-      // Fetch all city leaderboards
-      const cityPromises = cities.map(city => fetchLeaderboard(city.code));
-      await Promise.all(cityPromises);
+      // Fetch global distance leaderboard
+      await fetchLeaderboard(null, 'distance');
+      
+      // Fetch all city score leaderboards
+      const cityScorePromises = cities.map(city => fetchLeaderboard(city.code, 'score'));
+      await Promise.all(cityScorePromises);
+      
+      // Fetch all city distance leaderboards
+      const cityDistancePromises = cities.map(city => fetchLeaderboard(city.code, 'distance'));
+      await Promise.all(cityDistancePromises);
     } catch (error) {
       console.error('Error fetching leaderboards:', error);
     } finally {
@@ -113,7 +138,7 @@ export default function Home() {
 
   const renderLeaderboardContent = (leaderboardData, title) => (
     <>
-      <h3 className="text-xl font-bold text-center mb-4">{title}</h3>
+      {title && <h3 className="text-xl font-bold text-center mb-4">{title}</h3>}
       {loadingLeaderboard ? (
         <div className="space-y-2">
           {[...Array(10)].map((_, i) => (
@@ -161,6 +186,68 @@ export default function Home() {
               <div>
                 <Badge variant="secondary" className={`text-xl font-bold ${getScoreColor(entry.score)}`}>
                   {entry.score}
+                </Badge>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+
+  const renderDistanceLeaderboardContent = (leaderboardData, title) => (
+    <>
+      {title && <h3 className="text-xl font-bold text-center mb-4">{title}</h3>}
+      {loadingLeaderboard ? (
+        <div className="space-y-2">
+          {[...Array(10)].map((_, i) => (
+            <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-gray-100">
+              <div className="flex items-center gap-4">
+                <Skeleton className="h-8 w-12" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <Skeleton className="h-6 w-16" />
+            </div>
+          ))}
+        </div>
+      ) : leaderboardData.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-600 text-lg">No records yet!</p>
+          <p className="text-gray-500 mt-2">Be the first to play in this category!</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {leaderboardData.map((entry, index) => (
+            <div
+              key={`${entry.username}-${entry.timestamp}`}
+              className={`flex items-center justify-between p-4 rounded-lg transition-all ${isCurrentUser(entry.username)
+                  ? 'bg-yellow-100 border-2 border-yellow-400 shadow-lg'
+                  : entry.rank <= 3
+                    ? 'bg-blue-50 border border-blue-200'
+                    : 'bg-gray-50'
+                }`}
+            >
+              <div className="flex items-center gap-4">
+                <div className="text-xl font-bold w-12 text-center">
+                  {getRankIcon(entry.rank)}
+                </div>
+                <div>
+                  <div className={`font-semibold text-lg ${isCurrentUser(entry.username) ? 'text-yellow-800' : 'text-gray-800'
+                    }`}>
+                    {entry.username}
+                    {isCurrentUser(entry.username) && (
+                      <Badge className="ml-2 bg-yellow-500 text-black">YOU</Badge>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {new Date(entry.timestamp).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Badge variant="secondary" className={`text-xl font-bold ${getDistanceColor(entry.distance)}`}>
+                  {formatDistance(entry.distance)}
                 </Badge>
               </div>
             </div>
@@ -268,7 +355,8 @@ export default function Home() {
               <DialogTitle className="text-3xl text-center">🏆 VNGeoGuessr Leaderboards</DialogTitle>
             </DialogHeader>
 
-            <Tabs value={activeLeaderboardTab} onValueChange={setActiveLeaderboardTab} className="w-full">
+            {/* Horizontal Location Tabs */}
+            <Tabs value={activeLocationTab} onValueChange={setActiveLocationTab} className="w-full">
               <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="global">🌏 Global</TabsTrigger>
                 {cities.map(city => (
@@ -278,15 +366,103 @@ export default function Home() {
                 ))}
               </TabsList>
 
-              {/* Global Leaderboard */}
+              {/* Global Location Content */}
               <TabsContent value="global" className="space-y-4">
-                {renderLeaderboardContent(leaderboard, "Vietnam Global Leaderboard")}
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg mb-4">
+                  <h3 className="text-lg font-semibold text-center text-gray-800">
+                    🌏 Global Vietnam Leaderboards
+                  </h3>
+                  <p className="text-sm text-center text-gray-600 mt-1">
+                    Rankings across all Vietnamese cities
+                  </p>
+                </div>
+                
+                <div className="flex gap-4">
+                  {/* Vertical Type Tabs */}
+                  <div className="flex flex-col space-y-2 min-w-[120px]">
+                    <div className="text-xs font-medium text-gray-500 mb-1 px-2">VIEW TYPE</div>
+                    <button
+                      onClick={() => setActiveTypeTab('score')}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        activeTypeTab === 'score'
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      📊 Score
+                    </button>
+                    <button
+                      onClick={() => setActiveTypeTab('distance')}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        activeTypeTab === 'distance'
+                          ? 'bg-purple-600 text-white shadow-md'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      📏 Distance
+                    </button>
+                  </div>
+
+                  {/* Content Area */}
+                  <div className="flex-1">
+                    {activeTypeTab === 'score' && (
+                      renderLeaderboardContent(leaderboard, "")
+                    )}
+                    {activeTypeTab === 'distance' && (
+                      renderDistanceLeaderboardContent(distanceLeaderboard, "")
+                    )}
+                  </div>
+                </div>
               </TabsContent>
 
-              {/* City Leaderboards */}
+              {/* City Location Content */}
               {cities.map(city => (
                 <TabsContent key={city.code} value={city.code} className="space-y-4">
-                  {renderLeaderboardContent(cityLeaderboards[city.code] || [], `${city.name} Leaderboard`)}
+                  <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg mb-4">
+                    <h3 className="text-lg font-semibold text-center text-gray-800">
+                      🏙️ {city.name} Leaderboards
+                    </h3>
+                    <p className="text-sm text-center text-gray-600 mt-1">
+                      City-specific rankings for {city.name}
+                    </p>
+                  </div>
+                  
+                  <div className="flex gap-4">
+                    {/* Vertical Type Tabs */}
+                    <div className="flex flex-col space-y-2 min-w-[120px]">
+                      <div className="text-xs font-medium text-gray-500 mb-1 px-2">VIEW TYPE</div>
+                      <button
+                        onClick={() => setActiveTypeTab('score')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          activeTypeTab === 'score'
+                            ? 'bg-blue-600 text-white shadow-md'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        📊 Score
+                      </button>
+                      <button
+                        onClick={() => setActiveTypeTab('distance')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          activeTypeTab === 'distance'
+                            ? 'bg-purple-600 text-white shadow-md'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        📏 Distance
+                      </button>
+                    </div>
+
+                    {/* Content Area */}
+                    <div className="flex-1">
+                      {activeTypeTab === 'score' && (
+                        renderLeaderboardContent(cityLeaderboards[city.code] || [], "")
+                      )}
+                      {activeTypeTab === 'distance' && (
+                        renderDistanceLeaderboardContent(cityDistanceLeaderboards[city.code] || [], "")
+                      )}
+                    </div>
+                  </div>
                 </TabsContent>
               ))}
 
@@ -304,9 +480,19 @@ export default function Home() {
                     <div>500m-1km = 1 point ⭐</div>
                     <div>1km+ = 0 points</div>
                   </div>
-                  <div className="mt-3 pt-3 border-t border-gray-200">
-                    <p className="text-sm text-center font-medium text-gray-700">
-                      🏆 Scores accumulate - keep playing to climb the leaderboard!
+                  <div className="mt-4 pt-3 border-t border-gray-200 space-y-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                      <div className="text-center">
+                        <div className="font-medium text-blue-700 mb-1">📊 Score Leaderboards</div>
+                        <div className="text-gray-600">Accumulated points across all games</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-medium text-purple-700 mb-1">📏 Distance Leaderboards</div>
+                        <div className="text-gray-600">Best distance records (multiple entries per user)</div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-center font-medium text-gray-700 mt-3">
+                      🏆 Choose location (Global/City) and view type (Score/Distance) above
                     </p>
                   </div>
                 </CardContent>
