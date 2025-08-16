@@ -26,10 +26,13 @@ import {
 export default function GameClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
+
+  // State declarations
   const [location, setLocation] = useState('TPHCM');
   const [imageData, setImageData] = useState(null);
   const [sessionId, setSessionId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
   const [guessCoordinates, setGuessCoordinates] = useState(null);
   const [showResult, setShowResult] = useState(false);
   const [distance, setDistance] = useState(0);
@@ -39,11 +42,63 @@ export default function GameClient() {
   const [username, setUsernameState] = useState('');
   const [leaderboardRank, setLeaderboardRank] = useState(null);
   const [mapCenter, setMapCenter] = useState([10.8231, 106.6297]); // Default to Ho Chi Minh
+
+  // Refs
   const resultMapRef = useRef(null);
   const resultLeafletMapRef = useRef(null);
+  const initializingRef = useRef(false);
 
+  // Core functions first (no dependencies)
+  const getRandomImage = useCallback(async (locationCode, currentSessionId = null) => {
+    try {
+      console.log('Fetching random image for city:', locationCode);
+      const url = currentSessionId ?
+        `/api/new-game?city=${locationCode}&sessionId=${currentSessionId}` :
+        `/api/new-game?city=${locationCode}`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.success) {
+        console.log('API response data:', data);
+        setSessionId(data.sessionId);
+        const newImageData = {
+          id: data.imageData.id,
+          url: data.imageData.url,
+          isPano: data.imageData.isPano
+        };
+        console.log('Setting imageData:', newImageData);
+        setImageData(newImageData);
+        console.log('Setting loading to false');
+        setLoading(false);
+
+        console.log(`Image loaded from city bbox`);
+      } else {
+        throw new Error(data.error || 'No images found');
+      }
+    } catch (error) {
+      console.error('Error fetching image after all retries:', error);
+      console.error('Error details:', error.message);
+
+      setImageData(null);
+      setSessionId(null);
+      setLoading(false);
+
+      alert(`Failed to load street view image after trying different search areas: ${error.message || 'No images found'}`);
+    }
+  }, []); // No dependencies to prevent re-creation
+
+  // Functions that depend on other functions
   const loadLibrariesAndInitialize = useCallback(async (locationCode) => {
+    // Prevent multiple simultaneous initializations
+    if (initializingRef.current) {
+      console.log('Already initializing, skipping...');
+      return;
+    }
+
+    initializingRef.current = true;
     setLoading(true);
+
     try {
       // Set map center based on location
       const center = cityCenters[locationCode];
@@ -52,13 +107,19 @@ export default function GameClient() {
       }
 
       await getRandomImage(locationCode);
+      setInitialized(true);
     } catch (error) {
       console.error('Failed to initialize:', error);
       setLoading(false);
+    } finally {
+      initializingRef.current = false;
     }
-  }, []); // Remove sessionId dependency to prevent infinite loop
+  }, [getRandomImage]);
 
   useEffect(() => {
+    // Only initialize once
+    if (initialized) return;
+
     const locationParam = searchParams.get('location') || 'TPHCM';
     setLocation(locationParam);
 
@@ -68,7 +129,7 @@ export default function GameClient() {
 
     // Initialize the game
     loadLibrariesAndInitialize(locationParam);
-  }, [searchParams]); // Remove loadLibrariesAndInitialize from deps to prevent infinite loop
+  }, [searchParams, loadLibrariesAndInitialize, initialized]);
 
 
 
@@ -121,50 +182,6 @@ export default function GameClient() {
     console.log('Map clicked at:', coordinates);
   };
 
-  const getRandomImage = async (locationCode) => {
-    try {
-      console.log('Fetching random image for city:', locationCode);
-      const url = sessionId ?
-        `/api/new-game?city=${locationCode}&sessionId=${sessionId}` :
-        `/api/new-game?city=${locationCode}`;
-
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (data.success) {
-        console.log('API response data:', data);
-        setSessionId(data.sessionId);
-        const newImageData = {
-          id: data.imageData.id,
-          url: data.imageData.url,
-          isPano: data.imageData.isPano
-        };
-        console.log('Setting imageData:', newImageData);
-        setImageData(newImageData);
-        // Temporarily set loading to false here to debug
-        console.log('Setting loading to false');
-        setLoading(false);
-
-        console.log(`Image loaded from city bbox`);
-      } else {
-        throw new Error(data.error || 'No images found');
-      }
-    } catch (error) {
-      console.error('Error fetching image after all retries:', error);
-      console.error('Error details:', error.message);
-
-      // Set imageData to null to trigger error display in PanoramaViewer
-      setImageData(null);
-      setSessionId(null);
-
-      setLoading(false);
-
-      // Only show error after all retries are complete
-      // The API already handles retries internally
-      alert(`Failed to load street view image after trying different search areas: ${error.message || 'No images found'}`);
-    }
-  };
-
 
   const handleSubmitGuess = async () => {
     if (!guessCoordinates || !imageData) return;
@@ -207,8 +224,9 @@ export default function GameClient() {
     setGuessCoordinates(null);
     setLeaderboardRank(null);
     setExactLocation(null);
+    const currentSession = sessionId;
     setSessionId(null);
-    getRandomImage(location);
+    getRandomImage(location, currentSession);
   };
 
   const handleSkipGuess = async () => {
@@ -235,8 +253,9 @@ export default function GameClient() {
     setGuessCoordinates(null);
     setLeaderboardRank(null);
     setExactLocation(null);
+    const currentSession = sessionId;
     setSessionId(null);
-    getRandomImage(location);
+    getRandomImage(location, currentSession);
   };
 
   const handleGoBack = () => {
@@ -246,7 +265,7 @@ export default function GameClient() {
   // Create result map when dialog opens
   useEffect(() => {
     console.log('Result map effect triggered:', { showResult, exactLocation, guessCoordinates, hasRef: !!resultMapRef.current });
-    
+
     if (showResult && guessCoordinates) {
       // Clean up existing map
       if (resultLeafletMapRef.current) {
@@ -261,13 +280,13 @@ export default function GameClient() {
           setTimeout(initializeMap, 100);
           return;
         }
-        
+
         console.log('Map ref found, initializing map...');
         try {
           // Dynamically import Leaflet only on client side
           const L = (await import('leaflet')).default;
           await import('leaflet/dist/leaflet.css');
-          
+
           // Fix default marker icons issue (same as in LeafletMap component)
           delete L.Icon.Default.prototype._getIconUrl;
           L.Icon.Default.mergeOptions({
@@ -297,7 +316,7 @@ export default function GameClient() {
             iconSize: [20, 20],
             iconAnchor: [10, 10]
           });
-          
+
           const guessMarker = L.marker([guessCoordinates[0], guessCoordinates[1]], {
             icon: redIcon
           }).addTo(map).bindPopup("Your Guess");
@@ -311,7 +330,7 @@ export default function GameClient() {
               iconSize: [20, 20],
               iconAnchor: [10, 10]
             });
-            
+
             const trueLocationMarker = L.marker([exactLocation.lat, exactLocation.lng], {
               icon: greenIcon
             }).addTo(map).bindPopup("Actual Location");
@@ -327,9 +346,9 @@ export default function GameClient() {
           // Fit bounds to show all markers
           if (markers.length > 1) {
             const featureGroup = new L.featureGroup(markers);
-            map.fitBounds(featureGroup.getBounds(), { 
+            map.fitBounds(featureGroup.getBounds(), {
               padding: [20, 20],
-              maxZoom: 16 
+              maxZoom: 16
             });
           } else {
             // Only guess marker, center on it
@@ -366,7 +385,7 @@ export default function GameClient() {
   }, [showResult]);
 
   console.log('GameClient render - loading state:', loading);
-  
+
   if (loading) {
     console.log('Showing main loading screen');
     return (
@@ -495,7 +514,7 @@ export default function GameClient() {
             <Card className="my-6">
               <CardContent className="p-6">
                 <div className="text-center text-lg mb-4">📍 Actual Location vs Your Guess</div>
-                <div 
+                <div
                   ref={resultMapRef}
                   key={`map-${sessionId}`}
                   className="h-64 w-full bg-gray-100 rounded-lg overflow-hidden"
@@ -544,17 +563,19 @@ export default function GameClient() {
 
         {/* Donate Modal */}
         <Dialog open={showDonate} onOpenChange={setShowDonate}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="!max-w-none w-[800px] h-[800px] max-h-[90vh] max-w-[90vw]">
             <DialogHeader>
-              <DialogTitle className="text-2xl text-center">DONATE HERE</DialogTitle>
+              <DialogTitle className="text-5xl text-center mb-8">DONATE HERE</DialogTitle>
             </DialogHeader>
 
-            <div className="text-center space-y-6">
-              <Card className="w-64 h-64 mx-auto">
-                <CardContent className="h-full flex items-center justify-center">
-                  <span className="text-muted-foreground">QR Code Placeholder</span>
-                </CardContent>
-              </Card>
+            <div className="text-center space-y-12 flex-1 flex flex-col items-center justify-center">
+              <div className="w-[500px] h-[500px] mx-auto">
+                <img
+                  src="/qr.png"
+                  alt="Donate QR Code"
+                  className="w-full h-full object-contain rounded-xl shadow-2xl"
+                />
+              </div>
 
               <Button
                 onClick={() => setShowDonate(false)}
