@@ -26,16 +26,18 @@ Next.js 15 App Router structure:
 - `debug/page.js` - Development debugging tools
 
 #### API Routes (`src/app/api/`)
-- `new-game/route.js` - Creates new game sessions
-- `guess/route.js` - Processes guess submissions
-- `leaderboard/route.js` - Leaderboard data management
-- `debug/mapillary/route.js` - Mapillary API debugging
+- `new-game/route.js` - Creates new game sessions with Redis storage
+- `guess/route.js` - Processes guess submissions and calculates scores
+- `leaderboard/route.js` - Leaderboard data management with Redis
+- `skip/route.js` - Skip current round functionality
+- `debug/mapillary/route.js` - Mapillary API debugging and testing
 
 #### React Components (`src/app/components/`)
 - `GameClient.js` - Main game client component
 - `LeafletMap.js` - Interactive map for guess placement
 - `PanoramaViewer.js` - 360° street view display
 - `UsernameModal.js` - Username input modal
+- `DonateQRModal.js` - Donation QR code modal
 
 ### Reusable Components (`src/components/`)
 
@@ -60,10 +62,11 @@ Next.js 15 App Router structure:
 
 ### Utility Libraries (`src/lib/`)
 - `utils.js` - Utility functions including `cn()` for class name merging
-- `game.js` - Game logic and session management
-- `leaderboard.js` - Leaderboard operations with Redis
-- `mapillary.js` - Mapillary API integration
-- `nominatim.js` - Geographic boundary detection
+- `game.js` - Game logic, scoring, distance calculations, and city definitions
+- `leaderboard.js` - Leaderboard operations with Redis sorted sets
+- `mapillary.js` - Mapillary API integration for street view images
+- `session.js` - Redis-based session management with expiry
+- `redis.js` - Redis client connection and configuration
 
 ## Documentation (`/docs/`)
 - `project-overview.md` - Project overview and key characteristics

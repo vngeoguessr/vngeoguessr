@@ -16,30 +16,31 @@
   - Duc Hoa (Long An)
 
 ### 3. Session Creation
-- Server generates unique session ID using UUID
-- Server stores exact target location securely in session Map
+- Server generates unique UUID v4 session ID
+- Server stores exact target location securely in Redis with 30-minute expiry
 - Client receives session ID but never the target coordinates
 
 ### 4. Location Display Process
-- **Boundary Detection**: Server uses Nominatim API + Turf.js for accurate city boundary detection
-- **Image Search**: Mapillary API with 3-tier fallback logic:
-  1. Search within 1km radius
-  2. Fallback to 2km radius if no results
-  3. Final fallback to 5km radius
-- **Panorama Display**: PhotoSphereViewer renders 360° street view
+- **Bbox Location Generation**: Server uses pre-defined city bounding boxes for random coordinate generation
+- **Image Search**: Mapillary API searches within city bbox:
+  - Direct bbox filtering with is_pano=true preference
+  - Random selection from available panoramic images
+  - Fallback to non-panoramic images if needed
+- **Image Display**: Thumbnail images displayed (thumb_original_url)
 - **Security**: Client never receives exact target coordinates
 
 ### 5. Guessing Phase
-- **Panorama Interaction**: View 360° street-level image with PhotoSphereViewer controls
+- **Image Interaction**: View street-level thumbnail image
 - **Map Interaction**: Place guess marker on interactive Leaflet map with OpenStreetMap
 - **Submission**: Click submit button to finalize guess
 
 ### 6. Server-Side Processing
 - **Input**: Client submits guess coordinates + session ID only
-- **Retrieval**: Server retrieves exact location from secure session storage
-- **Calculation**: Server calculates distance using Turf.js (prevents client-side cheating)
+- **Retrieval**: Server retrieves exact location from Redis session storage
+- **Validation**: Server validates coordinate ranges and session existence
+- **Calculation**: Server calculates distance using Turf.js distance function
 - **Scoring**: Server-side score calculation with distance-based points
-- **Cleanup**: Session destroyed after submission for security
+- **Cleanup**: Redis session deleted after successful submission
 
 ### 7. Scoring System
 Distance-based points (0-5 scale):
@@ -58,13 +59,14 @@ Distance-based points (0-5 scale):
 - Compare guess vs actual location on map
 
 ### 9. Leaderboard Management
-- **Redis Storage**: Persistent storage with no expiration
+- **Redis Sorted Sets**: Persistent storage using ZADD/ZRANGE operations
 - **Top 200 Limit**: Automatic trimming to maintain top performers only
-- **Score Updates**: Only update if new score is higher than existing
-- **Data Structure**: Username + highest score tracking
+- **Score Updates**: Only update if new score is higher than existing (using ZSCORE check)
+- **Real-time Ranking**: Dynamic rank calculation using ZREVRANK
+- **Persistent Storage**: No expiration on leaderboard data
 
 ### 10. Continue or Exit
 - Option to start next round with new session and location
 - Option to return to city selection for different city
-- Option to view full leaderboard
-- Session cleanup ensures fresh start for each round
+- Option to view full leaderboard with pagination
+- Redis session cleanup ensures fresh start for each round
