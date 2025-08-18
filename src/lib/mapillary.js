@@ -10,9 +10,15 @@ export async function fetchMapillaryImages(bbox) {
 
   const bboxString = bbox.join(',');
 
-  console.log(`Searching for images within bbox: ${bboxString}`);
+  const apiUrl = `https://graph.mapillary.com/images?access_token=${accessToken}&fields=id,thumb_original_url,geometry,is_pano&limit=20&bbox=${bboxString}&is_pano=true`;
 
-  const apiUrl = `https://graph.mapillary.com/images?access_token=${accessToken}&fields=id,thumb_original_url,geometry,is_pano&limit=3&bbox=${bboxString}&is_pano=true`;
+  // Log API request details in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('=== MAPILLARY API REQUEST ===');
+    console.log('Request URL:', apiUrl.replace(accessToken, '[HIDDEN]'));
+    console.log('Bbox:', bboxString);
+    console.log('=== END REQUEST ===');
+  }
 
   try {
     const response = await fetch(apiUrl, {
@@ -28,6 +34,13 @@ export async function fetchMapillaryImages(bbox) {
     }
 
     const data = await response.json();
+
+    // Log full Mapillary response in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('=== MAPILLARY API RESPONSE ===');
+      console.log('Full response:', JSON.stringify(data, null, 2));
+      console.log('=== END MAPILLARY RESPONSE ===');
+    }
 
     if (data.data && data.data.length > 0) {
       console.log(`Found ${data.data.length} images within city bbox`);
