@@ -8,7 +8,7 @@ export default function DonateQRModal({ isOpen, onClose }) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="!max-w-none w-[800px] h-[800px] max-h-[90vh] max-w-[90vw]">
         <DialogHeader>
-          <DialogTitle className="text-5xl text-center mb-8">DONATE HERE</DialogTitle>
+          <DialogTitle className="text-5xl text-center mb-8">BUY ME A COFFEE</DialogTitle>
         </DialogHeader>
 
         <div className="text-center space-y-12 flex-1 flex flex-col items-center justify-center">

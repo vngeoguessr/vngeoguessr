@@ -212,7 +212,7 @@ export default function GameClient() {
         setCityRank(result.cityRank);
         setGlobalDistanceRank(result.globalDistanceRank);
         setCityDistanceRank(result.cityDistanceRank);
-        
+
         // Set accumulated score information
         if (result.leaderboard) {
           if (result.leaderboard.global) {
@@ -266,24 +266,24 @@ export default function GameClient() {
   const handleSkipGuess = async () => {
     if (!imageData) return;
 
-    setLoading(true);
-
     try {
-      // Just clean up the current session and move to next image
+      // Clean up the current session in the background
       if (sessionId) {
-        await fetch('/api/skip', {
+        fetch('/api/skip', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ sessionId })
+        }).catch(error => {
+          console.error('Error cleaning up session:', error);
         });
       }
     } catch (error) {
       console.error('Error cleaning up session:', error);
     }
 
-    // Reset state and load next image
+    // Reset state and load next image directly without loading screen
     setGuessCoordinates(null);
     setGlobalRank(null);
     setCityRank(null);
@@ -468,7 +468,7 @@ export default function GameClient() {
             className="flex items-center gap-2 bg-white hover:bg-gray-100 text-black border border-gray-300"
           >
             <span>☕</span>
-            <span>Donate</span>
+            <span>BUY ME A COFFEE</span>
           </Button>
         </header>
 
@@ -651,9 +651,9 @@ export default function GameClient() {
 
 
         {/* Donate Modal */}
-        <DonateQRModal 
-          isOpen={showDonate} 
-          onClose={() => setShowDonate(false)} 
+        <DonateQRModal
+          isOpen={showDonate}
+          onClose={() => setShowDonate(false)}
         />
       </div>
     </div>

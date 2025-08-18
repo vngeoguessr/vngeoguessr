@@ -51,7 +51,7 @@ export default function Home() {
       const params = new URLSearchParams();
       if (cityCode) params.append('city', cityCode);
       if (type) params.append('type', type);
-      
+
       const url = `/api/leaderboard?${params.toString()}`;
       const response = await fetch(url);
       const data = await response.json();
@@ -91,14 +91,14 @@ export default function Home() {
     try {
       // Fetch global score leaderboard
       await fetchLeaderboard(null, 'score');
-      
+
       // Fetch global distance leaderboard
       await fetchLeaderboard(null, 'distance');
-      
+
       // Fetch all city score leaderboards
       const cityScorePromises = cities.map(city => fetchLeaderboard(city.code, 'score'));
       await Promise.all(cityScorePromises);
-      
+
       // Fetch all city distance leaderboards
       const cityDistancePromises = cities.map(city => fetchLeaderboard(city.code, 'distance'));
       await Promise.all(cityDistancePromises);
@@ -284,7 +284,7 @@ export default function Home() {
                 className="flex items-center gap-2 bg-white hover:bg-gray-100 text-black border border-gray-300 transition-all duration-200 transform hover:scale-105"
               >
                 <span>☕</span>
-                <span className="font-semibold">BUY ME COFFEE</span>
+                <span className="font-semibold">BUY ME A COFFEE</span>
               </Button>
             </div>
           </header>
@@ -336,9 +336,9 @@ export default function Home() {
         </div>
 
         {/* Donate Modal */}
-        <DonateQRModal 
-          isOpen={showDonateModal} 
-          onClose={() => setShowDonateModal(false)} 
+        <DonateQRModal
+          isOpen={showDonateModal}
+          onClose={() => setShowDonateModal(false)}
         />
 
         {/* Username Modal */}
@@ -376,7 +376,7 @@ export default function Home() {
                     Rankings across all Vietnamese cities
                   </p>
                 </div>
-                
+
                 <div className="flex gap-4">
                   {/* Vertical Type Tabs */}
                   <div className="flex flex-col space-y-2 min-w-[120px]">
@@ -426,7 +426,7 @@ export default function Home() {
                       City-specific rankings for {city.name}
                     </p>
                   </div>
-                  
+
                   <div className="flex gap-4">
                     {/* Vertical Type Tabs */}
                     <div className="flex flex-col space-y-2 min-w-[120px]">
