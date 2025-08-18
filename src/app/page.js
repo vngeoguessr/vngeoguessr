@@ -258,13 +258,13 @@ export default function Home() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-purple-600">
-      <div className="min-h-screen bg-black/20 backdrop-blur-sm">
+    <div className="min-h-screen bg-white">
+      <div className="min-h-screen">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <header className="flex justify-between items-center mb-8">
             <div className="flex items-center">
-              <Button asChild className="bg-red-600 hover:bg-red-700 transition-all duration-200 transform hover:scale-105">
+              <Button asChild className="bg-black hover:bg-gray-800 text-white transition-all duration-200 transform hover:scale-105">
                 <Link href="/" className="flex items-center gap-2">
                   <span>🏠</span>
                   <span className="font-semibold">VNGEOGUESSR</span>
@@ -274,14 +274,14 @@ export default function Home() {
             <div className="flex items-center gap-4">
               <Button
                 onClick={handleLeaderboardClick}
-                className="bg-purple-600 hover:bg-purple-700 transition-all duration-200 transform hover:scale-105 flex items-center gap-2"
+                className="bg-gray-700 hover:bg-gray-800 text-white transition-all duration-200 transform hover:scale-105 flex items-center gap-2"
               >
                 <span>🏆</span>
                 <span className="font-semibold">LEADERBOARD</span>
               </Button>
               <Button
                 onClick={() => setShowDonateModal(true)}
-                className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-black transition-all duration-200 transform hover:scale-105"
+                className="flex items-center gap-2 bg-white hover:bg-gray-100 text-black border border-gray-300 transition-all duration-200 transform hover:scale-105"
               >
                 <span>☕</span>
                 <span className="font-semibold">BUY ME COFFEE</span>
@@ -291,17 +291,17 @@ export default function Home() {
 
           {/* Main Content */}
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-white mb-4">WELCOME TO VNGEOGUESSR</h2>
+            <h2 className="text-4xl font-bold text-black mb-4">WELCOME TO VNGEOGUESSR</h2>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
             {/* Left Panel - Instructions */}
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card className="bg-white border-gray-200 shadow-md">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold text-white">HOW TO PLAY</CardTitle>
+                <CardTitle className="text-2xl font-bold text-black">HOW TO PLAY</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4 text-white">
+                <div className="space-y-4 text-black">
                   <p className="text-lg">1. Choose your city</p>
                   <p className="text-lg">2. View the street-level panoramic image</p>
                   <p className="text-lg">3. Guess the location on the map as accurately as possible</p>
@@ -311,9 +311,9 @@ export default function Home() {
             </Card>
 
             {/* Right Panel - City Selection */}
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card className="bg-white border-gray-200 shadow-md">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold text-white text-center">SELECT CITY</CardTitle>
+                <CardTitle className="text-2xl font-bold text-black text-center">SELECT CITY</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3">
@@ -368,7 +368,7 @@ export default function Home() {
 
               {/* Global Location Content */}
               <TabsContent value="global" className="space-y-4">
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg mb-4">
+                <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mb-4">
                   <h3 className="text-lg font-semibold text-center text-gray-800">
                     🌏 Global Vietnam Leaderboards
                   </h3>
@@ -385,7 +385,7 @@ export default function Home() {
                       onClick={() => setActiveTypeTab('score')}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                         activeTypeTab === 'score'
-                          ? 'bg-blue-600 text-white shadow-md'
+                          ? 'bg-black text-white shadow-md'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
@@ -395,7 +395,7 @@ export default function Home() {
                       onClick={() => setActiveTypeTab('distance')}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                         activeTypeTab === 'distance'
-                          ? 'bg-purple-600 text-white shadow-md'
+                          ? 'bg-gray-700 text-white shadow-md'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
@@ -418,7 +418,7 @@ export default function Home() {
               {/* City Location Content */}
               {cities.map(city => (
                 <TabsContent key={city.code} value={city.code} className="space-y-4">
-                  <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-lg mb-4">
+                  <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mb-4">
                     <h3 className="text-lg font-semibold text-center text-gray-800">
                       🏙️ {city.name} Leaderboards
                     </h3>
@@ -435,7 +435,7 @@ export default function Home() {
                         onClick={() => setActiveTypeTab('score')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                           activeTypeTab === 'score'
-                            ? 'bg-blue-600 text-white shadow-md'
+                            ? 'bg-black text-white shadow-md'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
@@ -445,7 +445,7 @@ export default function Home() {
                         onClick={() => setActiveTypeTab('distance')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                           activeTypeTab === 'distance'
-                            ? 'bg-purple-600 text-white shadow-md'
+                            ? 'bg-gray-700 text-white shadow-md'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
@@ -504,7 +504,7 @@ export default function Home() {
         {/* Floating Debug Button */}
         <Button
           asChild
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gray-600 hover:bg-gray-700 shadow-lg transition-all duration-200 transform hover:scale-110 z-50"
+          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-black hover:bg-gray-800 text-white shadow-lg transition-all duration-200 transform hover:scale-110 z-50"
         >
           <Link href="/debug" className="flex items-center justify-center">
             <span className="text-xl">🔧</span>

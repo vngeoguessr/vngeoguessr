@@ -443,10 +443,10 @@ export default function GameClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-400 via-blue-500 to-purple-600">
-      <div className="min-h-screen bg-black/20">
+    <div className="min-h-screen bg-white">
+      <div className="min-h-screen">
         {/* Header */}
-        <header className="flex justify-between items-center p-4 bg-black/20">
+        <header className="flex justify-between items-center p-4 bg-gray-100 border-b border-gray-200">
           <Button
             onClick={handleGoBack}
             variant="destructive"
@@ -457,15 +457,15 @@ export default function GameClient() {
           </Button>
 
           <div className="text-center">
-            <div className="text-white text-2xl font-bold">VNGEOGUESSR</div>
-            <Badge variant="secondary" className="text-lg bg-blue-500 text-white">
+            <div className="text-black text-2xl font-bold">VNGEOGUESSR</div>
+            <Badge variant="secondary" className="text-lg bg-gray-700 text-white">
               {cityNames[location] || location}
             </Badge>
           </div>
 
           <Button
             onClick={() => setShowDonate(true)}
-            className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-black"
+            className="flex items-center gap-2 bg-white hover:bg-gray-100 text-black border border-gray-300"
           >
             <span>☕</span>
             <span>Donate</span>
@@ -485,7 +485,7 @@ export default function GameClient() {
               />
             ) : (
               <div className="w-full h-full min-h-[400px] flex items-center justify-center">
-                <div className="text-white">Loading panorama...</div>
+                <div className="text-black">Loading panorama...</div>
               </div>
             )}
           </div>
@@ -536,7 +536,7 @@ export default function GameClient() {
               </Badge>
 
               <div className="text-xl">
-                Round Score: <Badge className="text-lg font-bold bg-green-600">{score}/5 points</Badge>
+                Round Score: <Badge className="text-lg font-bold bg-black text-white">{score}/5 points</Badge>
               </div>
 
               {(globalScore !== null || cityScore !== null) && (
