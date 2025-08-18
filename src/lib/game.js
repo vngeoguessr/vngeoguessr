@@ -6,31 +6,36 @@ export const CITIES = {
     code: 'HN',
     name: 'Ha Noi',
     center: [21.0285, 105.8542],
-    bbox: [105.77, 20.96, 105.88, 21.05]
+    bbox: [105.77, 20.96, 105.88, 21.05],
+    enabled: true
   },
   DN: {
     code: 'DN',
     name: 'Da Nang',
     center: [16.0544, 108.2022],
-    bbox: [108.17, 16, 108.25, 16.1]
+    bbox: [108.17, 16, 108.25, 16.1],
+    enabled: false
   },
   TPHCM: {
     code: 'TPHCM',
     name: 'Ho Chi Minh',
     center: [10.8231, 106.6297],
-    bbox: [106.62, 10.71, 106.75, 10.83]
+    bbox: [106.62, 10.71, 106.75, 10.83],
+    enabled: true
   },
   DL: {
     code: 'DL',
     name: 'Da Lat',
     center: [11.9404, 108.4583],
-    bbox: [108.38, 11.89, 108.50, 12.00]
+    bbox: [108.38, 11.89, 108.50, 12.00],
+    enabled: true
   },
   DH: {
     code: 'DH',
     name: 'Duc Hoa (Long An)',
     center: [10.8888, 106.3825],
-    bbox: [106.35, 10.85, 106.45, 10.95]
+    bbox: [106.35, 10.85, 106.45, 10.95],
+    enabled: true
   }
 };
 
@@ -48,11 +53,13 @@ export const cityBboxes = Object.fromEntries(
   Object.values(CITIES).map(city => [city.code, city.bbox])
 );
 
-// Cities list for UI components
-export const cities = Object.values(CITIES).map(city => ({
-  code: city.code,
-  name: city.name.toUpperCase()
-}));
+// Cities list for UI components (only enabled cities)
+export const cities = Object.values(CITIES)
+  .filter(city => city.enabled)
+  .map(city => ({
+    code: city.code,
+    name: city.name.toUpperCase()
+  }));
 
 // Calculate distance between two coordinates in meters using Turf
 export function calculateDistance(lat1, lon1, lat2, lon2) {
